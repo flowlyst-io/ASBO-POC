@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#1976d2"/>
+  <g transform="translate(30 26)" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 2h24l12 12v34a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+    <path d="M12 26l6 6 12-12"/>
+  </g>
+</svg>
+</template>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/material-ui-design-system-019dcf05-c82b-722d-bde1-fd6fe75cb7ac/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/material-ui-design-system-019dcf05-c82b-722d-bde1-fd6fe75cb7ac/tokens/fig-tokens.css">
+<link rel="stylesheet" href="_ds/material-ui-design-system-019dcf05-c82b-722d-bde1-fd6fe75cb7ac/tokens/palette.css">
+<link rel="stylesheet" href="_ds/material-ui-design-system-019dcf05-c82b-722d-bde1-fd6fe75cb7ac/tokens/typography.css">
+<link rel="stylesheet" href="_ds/material-ui-design-system-019dcf05-c82b-722d-bde1-fd6fe75cb7ac/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/material-ui-design-system-019dcf05-c82b-722d-bde1-fd6fe75cb7ac/tokens/shadows.css">
+<link rel="stylesheet" href="_ds/material-ui-design-system-019dcf05-c82b-722d-bde1-fd6fe75cb7ac/styles.css">
+<script src="_ds/material-ui-design-system-019dcf05-c82b-722d-bde1-fd6fe75cb7ac/_ds_bundle.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  a { color: #1976d2; text-decoration: none; }
+  a:hover { color: #1565c0; text-decoration: underline; }
+  .scrolly { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.24) transparent; }
+  .scrolly::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scrolly::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.22); border-radius: 4px; }
+</style>
+</helmet>
+
+<div style="height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-family: Roboto, sans-serif; color: rgba(0,0,0,0.87); background: #f4f5f7;">
+
+  <!-- ===== Top App Bar ===== -->
+  <header style="flex: none; height: 60px; display: flex; align-items: center; gap: 16px; padding: 0 16px; background: #ffffff; box-shadow: var(--mui-elevation-2); z-index: 20;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="material-icons" style="color: rgba(0,0,0,0.56); font-size: 24px; cursor: pointer;">menu</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="width: 28px; height: 28px; border-radius: 6px; background: #1976d2; display: flex; align-items: center; justify-content: center;">
+          <span class="material-icons" style="color: #fff; font-size: 18px;">stream</span>
+        </div>
+        <span style="font-size: 20px; font-weight: 500; letter-spacing: 0.2px;">Flowlyst</span>
+      </div>
+      <span style="color: rgba(0,0,0,0.26); font-size: 20px; font-weight: 300; margin: 0 2px;">/</span>
+      <span style="font-size: 16px; font-weight: 500; color: rgba(0,0,0,0.72);">COE Review</span>
+    </div>
+
+    <div style="flex: 1;"></div>
+
+    <div style="width: 300px;">
+      <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.TextField" size="small" variant="outlined" placeholder="Search applications, districts…" startAdornment="search" fullWidth="{{ true }}" hint-size="100%,40px"></x-import>
+    </div>
+    <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.IconButton" color="default" hint-size="40px,40px"><span class="material-icons">help_outline</span></x-import>
+    <div style="position: relative; display: flex;">
+      <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.IconButton" color="default" hint-size="40px,40px"><span class="material-icons">notifications_none</span></x-import>
+      <span style="position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #d32f2f; border: 2px solid #fff;"></span>
+    </div>
+    <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Avatar" size="{{ 34 }}" color="secondary" hint-size="34px,34px">RM</x-import>
+  </header>
+
+  <!-- ===== Body ===== -->
+  <div style="flex: 1; display: flex; min-height: 0;">
+
+    <!-- ===== Left Nav Rail ===== -->
+    <nav style="flex: none; width: 232px; background: #ffffff; border-right: 1px solid rgba(0,0,0,0.12); display: flex; flex-direction: column; padding: 8px 0;">
+      <div style="padding: 10px 20px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: rgba(0,0,0,0.5);">Workspace</div>
+      <div style="display: flex; align-items: center; gap: 16px; padding: 10px 20px; color: rgba(0,0,0,0.7); cursor: pointer;" style-hover="background: rgba(0,0,0,0.04);">
+        <span class="material-icons" style="font-size: 22px;">dashboard</span><span style="font-size: 14px;">Dashboard</span>
+      </div>
+      <div onClick="{{ onGoUpload }}" style="display: flex; align-items: center; gap: 16px; padding: 10px 20px; position: relative; color: #1565c0; background: rgba(25,118,210,0.1); cursor: pointer;">
+        <span style="position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #1976d2;"></span>
+        <span class="material-icons" style="font-size: 22px;">fact_check</span><span style="font-size: 14px; font-weight: 500;">Applications</span>
+        <span style="margin-left: auto; background: #1976d2; color: #fff; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 1px 7px;">24</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; padding: 10px 20px; color: rgba(0,0,0,0.7); cursor: pointer;" style-hover="background: rgba(0,0,0,0.04);">
+        <span class="material-icons" style="font-size: 22px;">groups</span><span style="font-size: 14px;">Reviewers</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; padding: 10px 20px; color: rgba(0,0,0,0.7); cursor: pointer;" style-hover="background: rgba(0,0,0,0.04);">
+        <span class="material-icons" style="font-size: 22px;">insights</span><span style="font-size: 14px;">Metrics</span>
+      </div>
+      <div style="padding: 16px 20px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: rgba(0,0,0,0.5);">My queue</div>
+      <div style="display: flex; align-items: center; gap: 16px; padding: 10px 20px; color: rgba(0,0,0,0.7); cursor: pointer;" style-hover="background: rgba(0,0,0,0.04);">
+        <span class="material-icons" style="font-size: 22px;">rate_review</span><span style="font-size: 14px;">Assigned to me</span>
+        <span style="margin-left: auto; font-size: 12px; color: rgba(0,0,0,0.5);">6</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; padding: 10px 20px; color: rgba(0,0,0,0.7); cursor: pointer;" style-hover="background: rgba(0,0,0,0.04);">
+        <span class="material-icons" style="font-size: 22px;">history</span><span style="font-size: 14px;">Completed</span>
+      </div>
+      <div style="flex: 1;"></div>
+      <div style="margin: 8px 12px; padding: 12px 14px; border-radius: 8px; background: #f4f5f7; display: flex; gap: 10px;">
+        <span class="material-icons" style="font-size: 20px; color: #0288d1;">verified_user</span>
+        <div>
+          <div style="font-size: 12px; font-weight: 500; color: rgba(0,0,0,0.78);">Human-in-the-loop</div>
+          <div style="font-size: 11px; color: rgba(0,0,0,0.5); line-height: 1.4; margin-top: 2px;">AI prepares findings. You decide every outcome.</div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ===== Main Column ===== -->
+    <main style="flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+
+      <!-- ============ UPLOAD / INTAKE SCREEN (F1 + F2) ============ -->
+      <sc-if value="{{ isUpload }}" hint-placeholder-val="{{ true }}">
+      <div class="scrolly" style="flex: 1; min-height: 0; overflow-y: auto; padding: 28px 24px;">
+        <div style="max-width: 1080px; margin: 0 auto;">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(0,0,0,0.5); margin-bottom: 6px;">
+            <span>Applications</span><span class="material-icons" style="font-size: 15px;">chevron_right</span>
+            <span>FY2025 cycle</span><span class="material-icons" style="font-size: 15px;">chevron_right</span>
+            <span style="color: rgba(0,0,0,0.75);">New intake</span>
+          </div>
+          <h1 style="margin: 0; font-size: 24px; font-weight: 500;">New application intake</h1>
+          <div style="font-size: 14px; color: rgba(0,0,0,0.6); margin-top: 4px; max-width: 720px;">Upload an ACFR and application materials. Flowlyst extracts the document, runs the completeness gate, then prepares an AI-assisted review for a volunteer expert.</div>
+
+          <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 24px; align-items: flex-start;">
+
+            <!-- Left: upload + files -->
+            <div style="flex: 1 1 460px; min-width: 320px; display: flex; flex-direction: column; gap: 20px;">
+              <div style="background: #fff; border-radius: 8px; box-shadow: var(--mui-elevation-1); padding: 24px;">
+                <input type="file" multiple accept=".pdf" ref="{{ fileRef }}" onChange="{{ onFilesChosen }}" style="display: none">
+                <div onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="border: 2px dashed {{ dropBorder }}; border-radius: 10px; padding: 40px 24px; text-align: center; background: {{ dropBg }}; transition: border-color .15s, background .15s;">
+                  <span class="material-icons" style="font-size: 52px; color: #1976d2;">cloud_upload</span>
+                  <div style="font-size: 17px; font-weight: 500; margin-top: 8px;">Drag &amp; drop the ACFR and application files</div>
+                  <div style="font-size: 13px; color: rgba(0,0,0,0.55); margin-top: 4px;">PDF up to ~300 pages — financial statements, notes, schedules, application form</div>
+                  <div style="margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <div onClick="{{ onBrowse }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="contained" color="primary" startIcon="upload_file" disableElevation="{{ true }}" hint-size="150px,38px">Browse files</x-import></div>
+                    <div onClick="{{ onLoadSample }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="outlined" color="primary" startIcon="folder_special" hint-size="220px,38px">Load sample (Davenport IA)</x-import></div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 14px; padding: 10px 12px; border-radius: 6px; background: #f4f5f7;">
+                  <span class="material-icons" style="font-size: 18px; color: rgba(0,0,0,0.5);">info</span>
+                  <div style="font-size: 12px; color: rgba(0,0,0,0.6); line-height: 1.5;">The POC ships with pre-loaded public ACFRs. Production supports presigned direct-to-S3 uploads so large ACFRs bypass request-size limits. All documents stay inside Flowlyst's AWS account.</div>
+                </div>
+              </div>
+
+              <sc-if value="{{ hasFiles }}" hint-placeholder-val="{{ false }}">
+              <div style="background: #fff; border-radius: 8px; box-shadow: var(--mui-elevation-1); padding: 8px 8px 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 8px;">
+                  <div style="font-size: 15px; font-weight: 500;">Uploaded files</div>
+                  <div onClick="{{ onClearFiles }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="text" color="inherit" size="small" startIcon="restart_alt" hint-size="80px,32px">Reset</x-import></div>
+                </div>
+                <sc-for list="{{ fileRows }}" as="fl" hint-placeholder-count="3">
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-top: 1px solid rgba(0,0,0,0.06);">
+                    <span class="material-icons" style="font-size: 26px; color: #d32f2f; flex: none;">picture_as_pdf</span>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ fl.name }}</div>
+                      <div style="font-size: 12px; color: rgba(0,0,0,0.5);">{{ fl.size }}</div>
+                    </div>
+                    <div style="flex: none;"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Chip" label="{{ fl.type }}" color="{{ fl.color }}" variant="outlined" size="small" hint-size="90px,24px"></x-import></div>
+                    <div style="flex: none; display: inline-flex; align-items: center; gap: 5px; color: {{ fl.statusColor }}; min-width: 96px; justify-content: flex-end;">
+                      <span class="material-icons" style="font-size: 18px;">{{ fl.statusIcon }}</span>
+                      <span style="font-size: 12px; font-weight: 500;">{{ fl.statusText }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              </sc-if>
+            </div>
+
+            <!-- Right: pipeline + gate -->
+            <div style="flex: 0 1 380px; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
+              <div style="background: #fff; border-radius: 8px; box-shadow: var(--mui-elevation-1); padding: 18px 20px;">
+                <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px;">Processing pipeline</div>
+                <div style="font-size: 12px; color: rgba(0,0,0,0.5); margin-bottom: 14px;">Runs asynchronously — findings stream in as workers finish</div>
+                <sc-for list="{{ stepRows }}" as="st" hint-placeholder-count="5">
+                  <div style="display: flex; align-items: flex-start; gap: 12px; padding: 7px 0;">
+                    <span style="flex: none; width: 30px; height: 30px; border-radius: 50%; background: {{ st.circleBg }}; color: {{ st.circleColor }}; display: inline-flex; align-items: center; justify-content: center;"><span class="material-icons" style="font-size: 18px;">{{ st.iconName }}</span></span>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-size: 13px; font-weight: 500;">{{ st.label }}</div>
+                      <div style="font-size: 11.5px; color: rgba(0,0,0,0.5);">{{ st.sub }}</div>
+                    </div>
+                    <span style="flex: none; font-size: 11px; font-weight: 500; color: {{ st.statusColor }};">{{ st.statusText }}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="background: #fff; border-radius: 8px; box-shadow: var(--mui-elevation-1); padding: 18px 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <div style="font-size: 15px; font-weight: 500;">Completeness gate</div>
+                  <div style="flex: none;"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Chip" label="{{ gateChipLabel }}" color="{{ gateChipColor }}" size="small" hint-size="90px,24px"></x-import></div>
+                </div>
+                <sc-for list="{{ gateRows }}" as="g" hint-placeholder-count="6">
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
+                    <span class="material-icons" style="font-size: 19px; color: {{ g.color }}; flex: none;">{{ g.icon }}</span>
+                    <div style="flex: 1; font-size: 12.5px; color: rgba(0,0,0,0.75);">{{ g.label }}</div>
+                    <span style="flex: none; font-size: 11px; font-weight: 500; color: {{ g.color }};">{{ g.text }}</span>
+                  </div>
+                </sc-for>
+                <div style="font-size: 11.5px; color: rgba(0,0,0,0.5); line-height: 1.5; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.08);">If any check fails, the submission is auto-flagged for rejection with a generated explanation — a human confirms before it's sent.</div>
+                <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top: 14px; padding: 12px 14px; border-radius: 8px; background: rgba(46,125,50,0.1); display: flex; align-items: center; gap: 10px;">
+                    <span class="material-icons" style="color: #2e7d32; font-size: 22px;">check_circle</span>
+                    <div style="flex: 1; font-size: 13px; font-weight: 500; color: #1b5e20;">Completeness passed — ready for review</div>
+                  </div>
+                  <div onClick="{{ onGoReview }}" style="margin-top: 12px;"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="contained" color="primary" fullWidth="{{ true }}" endIcon="arrow_forward" hint-size="100%,40px">Open prepared review</x-import></div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ============ REVIEW WORKSPACE SCREEN (F6) ============ -->
+      <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+      <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+
+      <!-- Application context bar -->
+      <div style="flex: none; background: #fff; border-bottom: 1px solid rgba(0,0,0,0.12); padding: 14px 24px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(0,0,0,0.5); margin-bottom: 6px;">
+          <span onClick="{{ onGoUpload }}" style="cursor: pointer; color: #1976d2;">Applications</span><span class="material-icons" style="font-size: 15px;">chevron_right</span>
+          <span>FY2025 cycle</span><span class="material-icons" style="font-size: 15px;">chevron_right</span>
+          <span style="color: rgba(0,0,0,0.75);">Davenport CSD</span>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <h1 style="margin: 0; font-size: 22px; font-weight: 500; line-height: 1.2;">Davenport Community School District</h1>
+              <div style="flex: none; min-width: 86px;"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Chip" label="Better" color="success" size="small" icon="workspace_premium" hint-size="96px,24px"></x-import></div>
+            </div>
+            <div style="font-size: 13px; color: rgba(0,0,0,0.6); margin-top: 3px;">ACFR · Fiscal Year ended June 30, 2025 · Iowa · 214 pages · COE checklist v2025.1 (pre-GASB&nbsp;103)</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: center; gap: 22px;">
+            <div style="text-align: center;">
+              <div style="display: flex; align-items: center; gap: 6px; color: #2e7d32; font-size: 13px; font-weight: 500;"><span class="material-icons" style="font-size: 18px;">check_circle</span>Completeness passed</div>
+              <div style="font-size: 11px; color: rgba(0,0,0,0.5); margin-top: 2px;">Intake gate cleared</div>
+            </div>
+            <div style="width: 1px; height: 34px; background: rgba(0,0,0,0.12);"></div>
+            <div style="text-align: center;">
+              <div style="display: flex; align-items: center; gap: 6px; color: #0288d1; font-size: 13px; font-weight: 500;"><span class="material-icons" style="font-size: 18px;">verified</span>Verifier: {{ verifierConfirmed }}/{{ totalCount }} confirmed</div>
+              <div style="font-size: 11px; color: rgba(0,0,0,0.5); margin-top: 2px;">1 citation downgraded</div>
+            </div>
+            <div style="width: 1px; height: 34px; background: rgba(0,0,0,0.12);"></div>
+            <div style="text-align: center; min-width: 120px;">
+              <div style="font-size: 13px; font-weight: 500; color: rgba(0,0,0,0.75);">{{ reviewedCount }} of {{ totalCount }} reviewed</div>
+              <div style="height: 6px; border-radius: 3px; background: rgba(0,0,0,0.1); margin-top: 6px; overflow: hidden;">
+                <div style="height: 100%; border-radius: 3px; background: #1976d2; width: {{ progressPct }};"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Split: findings | citation viewer -->
+      <div style="flex: 1; display: flex; min-height: 0;">
+
+        <!-- Findings panel -->
+        <section style="flex: 0 1 440px; min-width: 340px; max-width: 520px; min-height: 0; display: flex; flex-direction: column; border-right: 1px solid rgba(0,0,0,0.12); background: #f4f5f7;">
+          <div style="flex: none; padding: 14px 20px 10px; background: #fff; border-bottom: 1px solid rgba(0,0,0,0.08);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <div style="font-size: 15px; font-weight: 500;">Checklist findings</div>
+              <div style="font-size: 12px; color: rgba(0,0,0,0.5);">AI-prepared · reviewer confirms each</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+                <div onClick="{{ f.onClick }}" style="cursor: pointer;">
+                  <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Chip" label="{{ f.label }}" color="{{ f.color }}" variant="{{ f.variant }}" size="small" hint-size="90px,24px"></x-import>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div class="scrolly" style="flex: 1; min-height: 0; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px;">
+            <sc-for list="{{ findings }}" as="f" hint-placeholder-count="6">
+              <div onClick="{{ f.onSelect }}" style="background: #fff; border-radius: 8px; border-left: 4px solid {{ f.accent }}; box-shadow: {{ f.shadow }}; padding: 16px 18px; cursor: pointer; transition: box-shadow .15s;">
+                <!-- header -->
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(0,0,0,0.45);">{{ f.section }} · Criterion {{ f.num }}</div>
+                    <div style="font-size: 15px; font-weight: 500; line-height: 1.35; margin-top: 3px;">{{ f.title }}</div>
+                  </div>
+                  <div style="flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 14px; background: {{ f.statusBg }}; color: {{ f.statusColor }};">
+                    <span class="material-icons" style="font-size: 16px;">{{ f.statusIcon }}</span>
+                    <span style="font-size: 12px; font-weight: 600;">{{ f.statusLabel }}</span>
+                  </div>
+                </div>
+
+                <!-- meta -->
+                <div style="display: flex; align-items: center; gap: 16px; margin-top: 10px; flex-wrap: wrap;">
+                  <div style="display: inline-flex; align-items: center; gap: 5px; color: {{ f.confColor }};">
+                    <span class="material-icons" style="font-size: 15px;">{{ f.confIcon }}</span>
+                    <span style="font-size: 12px; font-weight: 500;">{{ f.confLabel }}</span>
+                  </div>
+                  <div onClick="{{ f.onSelect }}" style="display: inline-flex; align-items: center; gap: 4px; color: #1976d2; cursor: pointer; font-size: 12px; font-weight: 500;">
+                    <span class="material-icons" style="font-size: 15px;">description</span>
+                    <span>{{ f.citeLabel }}</span>
+                    <span class="material-icons" style="font-size: 15px;">open_in_new</span>
+                  </div>
+                </div>
+
+                <!-- verifier / needs-human banner -->
+                <sc-if value="{{ f.needsHuman }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top: 12px; display: flex; gap: 9px; padding: 10px 12px; border-radius: 6px; background: rgba(237,108,2,0.1); border: 1px solid rgba(237,108,2,0.3);">
+                    <span class="material-icons" style="font-size: 18px; color: #ed6c02;">report_problem</span>
+                    <div style="font-size: 12px; line-height: 1.45; color: rgba(0,0,0,0.75);"><b style="color: #b35300;">Verifier flagged — needs human.</b> {{ f.verifierReason }}</div>
+                  </div>
+                </sc-if>
+
+                <!-- draft comment / edit -->
+                <sc-if value="{{ f.isEditing }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top: 12px;" onClick="{{ stop }}">
+                    <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.TextField" label="Reviewer comment" value="{{ editText }}" onChange="{{ onEditChange }}" multiline="{{ true }}" rows="{{ 4 }}" fullWidth="{{ true }}" size="small" hint-size="100%,110px"></x-import>
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                      <div onClick="{{ onEditCancel }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="text" color="inherit" size="small" hint-size="72px,32px">Cancel</x-import></div>
+                      <div onClick="{{ onEditSave }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="contained" color="primary" size="small" startIcon="save" hint-size="120px,32px">Save comment</x-import></div>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ f.showComment }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top: 12px; background: #f7f9fc; border: 1px solid rgba(0,0,0,0.06); border-radius: 6px; padding: 10px 12px;">
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                      <span class="material-icons" style="font-size: 15px; color: #1976d2;">auto_awesome</span>
+                      <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: rgba(0,0,0,0.5);">{{ f.commentLabel }}</span>
+                    </div>
+                    <div style="font-size: 13px; line-height: 1.55; color: rgba(0,0,0,0.8);">{{ f.displayComment }}</div>
+                  </div>
+                </sc-if>
+
+                <!-- actions / review state -->
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 14px;">
+                  <sc-if value="{{ f.reviewed }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 16px; background: {{ f.reviewBg }}; color: {{ f.reviewColor }};">
+                      <span class="material-icons" style="font-size: 17px;">{{ f.reviewIcon }}</span>
+                      <span style="font-size: 12px; font-weight: 600;">{{ f.reviewLabel }}</span>
+                    </div>
+                    <div style="flex: 1;"></div>
+                    <div onClick="{{ f.onEdit }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="text" color="primary" size="small" startIcon="edit" hint-size="70px,32px">Edit</x-import></div>
+                    <div onClick="{{ f.onUndo }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="text" color="inherit" size="small" startIcon="undo" hint-size="70px,32px">Undo</x-import></div>
+                  </sc-if>
+                  <sc-if value="{{ f.showActions }}" hint-placeholder-val="{{ true }}">
+                    <div onClick="{{ f.onAccept }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="contained" color="success" size="small" startIcon="check" disableElevation="{{ true }}" hint-size="90px,32px">Accept</x-import></div>
+                    <div onClick="{{ f.onEdit }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="outlined" color="primary" size="small" startIcon="edit" hint-size="80px,32px">Edit</x-import></div>
+                    <div onClick="{{ f.onReject }}"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="text" color="error" size="small" startIcon="close" hint-size="80px,32px">Reject</x-import></div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <!-- Citation / ACFR viewer -->
+        <section style="flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: #e9ebef;">
+          <div style="flex: none; min-height: 48px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 6px; padding: 6px 12px; background: #fff; border-bottom: 1px solid rgba(0,0,0,0.12);">
+            <span class="material-icons" style="color: #d32f2f; font-size: 22px; flex: none;">picture_as_pdf</span>
+            <div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: rgba(0,0,0,0.7);"><span style="font-weight: 500; color: rgba(0,0,0,0.87);">Davenport_CSD_ACFR_FY2025.pdf</span> · {{ selSection }} section</div>
+            <div style="flex: 1; min-width: 8px;"></div>
+            <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.IconButton" color="default" size="small" hint-size="34px,34px"><span class="material-icons">navigate_before</span></x-import>
+            <span style="font-size: 13px; color: rgba(0,0,0,0.7); white-space: nowrap; flex: none;">{{ selPage }} / 214</span>
+            <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.IconButton" color="default" size="small" hint-size="34px,34px"><span class="material-icons">navigate_next</span></x-import>
+            <div style="width: 1px; height: 22px; background: rgba(0,0,0,0.12); margin: 0 2px; flex: none;"></div>
+            <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.IconButton" color="default" size="small" hint-size="34px,34px"><span class="material-icons">zoom_in</span></x-import>
+            <x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.IconButton" color="default" size="small" hint-size="34px,34px"><span class="material-icons">download</span></x-import>
+          </div>
+
+          <div class="scrolly" style="flex: 1; min-height: 0; overflow-y: auto; padding: 24px; display: flex; justify-content: center; align-items: flex-start;">
+            <div style="width: 620px; max-width: 100%; background: #fff; box-shadow: var(--mui-elevation-8); border-radius: 2px; padding: 52px 56px; min-height: 720px; font-family: 'Roboto Mono', monospace;">
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(0,0,0,0.4); letter-spacing: 0.5px; border-bottom: 1px solid rgba(0,0,0,0.15); padding-bottom: 10px; margin-bottom: 22px;">
+                <span>DAVENPORT COMMUNITY SCHOOL DISTRICT</span>
+                <span>{{ selSectionUpper }}</span>
+              </div>
+              <div style="font-size: 15px; font-weight: 500; font-family: Roboto, sans-serif; margin-bottom: 18px; color: rgba(0,0,0,0.85);">{{ selPageTitle }}</div>
+              <div style="display: flex; flex-direction: column; gap: 13px;">
+                <sc-for list="{{ selLines }}" as="ln" hint-placeholder-count="7">
+                  <div id="{{ ln.anchor }}" style="font-size: 12.5px; line-height: 1.7; color: rgba(0,0,0,0.68); background: {{ ln.bg }}; padding: {{ ln.pad }}; border-radius: 3px; box-shadow: {{ ln.ring }};">{{ ln.text }}</div>
+                </sc-for>
+              </div>
+              <div style="margin-top: 40px; text-align: center; font-size: 10px; color: rgba(0,0,0,0.35);">— {{ selPage }} —</div>
+            </div>
+          </div>
+
+          <!-- citation link-back -->
+          <div style="flex: none; padding: 10px 16px; background: #fff; border-top: 1px solid rgba(0,0,0,0.12); display: flex; align-items: center; gap: 10px;">
+            <span class="material-icons" style="font-size: 18px; color: #1976d2; flex: none;">my_location</span>
+            <div style="font-size: 12px; color: rgba(0,0,0,0.7); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Source for <b>{{ selCiteTitle }}</b></div>
+            <div onClick="{{ onScrollCite }}" style="flex: none;"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="outlined" color="primary" size="small" startIcon="center_focus_strong" hint-size="130px,32px">Jump to citation</x-import></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Bottom action bar -->
+      <div style="flex: none; height: 60px; background: #fff; border-top: 1px solid rgba(0,0,0,0.12); box-shadow: var(--mui-elevation-4); display: flex; align-items: center; gap: 16px; padding: 0 24px; z-index: 10;">
+        <span class="material-icons" style="color: {{ readyIconColor }}; font-size: 22px; flex: none;">{{ readyIcon }}</span>
+        <div style="flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: rgba(0,0,0,0.7);">{{ readyMessage }}</div>
+        <div style="flex: none;"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="outlined" color="inherit" size="medium" startIcon="chat_bubble_outline" hint-size="150px,38px">Add general note</x-import></div>
+        <div style="flex: none;"><x-import component-from-global-scope="MaterialUIDesignSystem_019dcf.Button" variant="contained" color="primary" size="medium" endIcon="arrow_forward" disabled="{{ notReady }}" hint-size="230px,38px">Mark ready for decision</x-import></div>
+      </div>
+      </div>
+      </sc-if>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'upload',
+    filter: 'all',
+    selectedId: 5,
+    editingId: null,
+    editText: '',
+    reviews: {},
+    scrollTick: 0,
+    files: [],
+    stage: -1,
+    gateRevealed: 0,
+    done: false,
+    dragging: false,
+  };
+
+  _t = [];
+  fileRef = React.createRef();
+
+  steps = [
+    { icon: 'cloud_upload', label: 'Upload & secure storage', sub: 'Files written to encrypted S3 (Flowlyst AWS)' },
+    { icon: 'description', label: 'Text extraction & OCR', sub: 'Native PDF text layer, OCR fallback' },
+    { icon: 'table_chart', label: 'Table extraction', sub: 'Financial-statement pages only' },
+    { icon: 'segment', label: 'Section segmentation', sub: 'Introductory · Financial · Statistical · Compliance' },
+    { icon: 'verified_user', label: 'Completeness gate', sub: 'Six intake checks (F2)' },
+  ];
+
+  gateItems = [
+    { label: "Auditor's report — unmodified (clean) opinion" },
+    { label: 'MD&A present' },
+    { label: 'Required basic financial statements & notes' },
+    { label: 'Statistical section present' },
+    { label: 'COE checklist attached (required for this applicant)' },
+    { label: 'Application form & fee status' },
+  ];
+
+  sampleFiles = [
+    { name: 'Davenport_CSD_ACFR_FY2025.pdf', size: '8.4 MB', type: 'ACFR', color: 'primary' },
+    { name: 'COE_Application_FY2025.pdf', size: '0.2 MB', type: 'Application', color: 'info' },
+    { name: 'COE_Checklist_v2025.pdf', size: '96 KB', type: 'Checklist', color: 'secondary' },
+  ];
+
+  clearTimers() { (this._t || []).forEach(clearTimeout); this._t = []; }
+  componentWillUnmount() { this.clearTimers(); }
+
+  startPipeline(files) {
+    this.clearTimers();
+    this.setState({ files, stage: 0, gateRevealed: 0, done: false, dragging: false });
+    const t = (fn, ms) => { this._t.push(setTimeout(fn, ms)); };
+    t(() => this.setState({ stage: 1 }), 900);
+    t(() => this.setState({ stage: 2 }), 1800);
+    t(() => this.setState({ stage: 3 }), 2700);
+    t(() => this.setState({ stage: 4 }), 3600);
+    [1, 2, 3, 4, 5, 6].forEach((n, i) => t(() => this.setState({ gateRevealed: n }), 4100 + i * 430));
+    t(() => this.setState({ done: true }), 4100 + 6 * 430 + 300);
+  }
+
+  loadSample() { this.startPipeline(this.sampleFiles.map(f => ({ ...f }))); }
+
+  onFilesChosen(e) {
+    const list = [...(e.target.files || [])];
+    if (!list.length) return;
+    const files = list.map(f => ({
+      name: f.name,
+      size: f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB',
+      type: /acfr|comprehensive/i.test(f.name) ? 'ACFR' : /check/i.test(f.name) ? 'Checklist' : 'Document',
+      color: 'default',
+    }));
+    this.startPipeline(files);
+  }
+
+  raw = [
+    { id: 1, num: '1.2', section: 'Introductory', status: 'met', confidence: 'high',
+      title: 'Letter of transmittal is present and signed',
+      page: 3, pageTitle: 'Letter of Transmittal',
+      comment: 'Letter of transmittal is present, signed by the Superintendent and Chief Financial Officer, and dated within the required window. It addresses the district profile, economic condition, and major initiatives as required.',
+      cite: 'p. 3 — Letter of transmittal',
+      hlText: 'The letter of transmittal, signed by the Superintendent and the Chief Financial Officer and dated October 12, 2025, accompanies the financial statements as required by GAAP and the COE program.',
+      lines: [
+        'Honorable Board of Education and Citizens of the Davenport Community School District:',
+        'State law requires that every general-purpose local government publish a complete set of financial statements presented in conformity with generally accepted accounting principles (GAAP).',
+        '@hl',
+        'This report consists of management\u2019s representations concerning the finances of the District. Consequently, management assumes full responsibility for the completeness and reliability of the information.',
+        'The internal control structure has been designed to provide reasonable, rather than absolute, assurance that the financial statements are free of material misstatement.',
+      ] },
+    { id: 2, num: '2.1', section: 'Financial', status: 'met', confidence: 'high',
+      title: "Independent auditor's report expresses an unmodified (clean) opinion",
+      page: 34, pageTitle: "Independent Auditor's Report",
+      comment: 'The independent auditor\u2019s report expresses an UNMODIFIED (clean) opinion on the basic financial statements. The report is signed and dated, and references GAAS and Government Auditing Standards. This satisfies the unmodified-opinion completeness requirement.',
+      cite: 'p. 34 — Opinion paragraph',
+      hlText: 'In our opinion, the financial statements referred to above present fairly, in all material respects, the respective financial position of the governmental activities \u2026 in accordance with accounting principles generally accepted in the United States of America.',
+      lines: [
+        'To the Board of Education, Davenport Community School District:',
+        'We have audited the accompanying financial statements of the governmental activities, each major fund, and the aggregate remaining fund information of the District as of and for the year ended June 30, 2025.',
+        '@hl',
+        'We conducted our audit in accordance with auditing standards generally accepted in the United States of America and the standards applicable to financial audits contained in Government Auditing Standards.',
+        'We believe that the audit evidence we have obtained is sufficient and appropriate to provide a basis for our audit opinion.',
+      ] },
+    { id: 3, num: '3.4', section: 'Financial', status: 'met', confidence: 'medium',
+      title: 'MD&A is present and precedes the basic financial statements',
+      page: 21, pageTitle: "Management's Discussion & Analysis",
+      comment: 'MD&A is present and precedes the basic financial statements. It includes the required condensed comparison of current- and prior-year data and an analysis of significant variations. Placement and content meet the FY2025 (pre-GASB 103) requirements.',
+      cite: 'p. 21 — MD&A overview',
+      hlText: "This section of the District's annual comprehensive financial report presents management's discussion and analysis of the financial performance during the fiscal year ended June 30, 2025. Please read it in conjunction with the transmittal letter and the financial statements.",
+      lines: [
+        "Management's Discussion and Analysis",
+        '@hl',
+        'FINANCIAL HIGHLIGHTS \u2014 The assets and deferred outflows of the District exceeded its liabilities and deferred inflows at the close of the fiscal year by $148.2 million (net position).',
+        'The District\u2019s total net position increased by $6.4 million during the fiscal year, driven primarily by capital grant revenue and controlled operating expenditure.',
+        'As of the close of the current fiscal year, the District\u2019s governmental funds reported combined ending fund balances of $71.9 million.',
+      ] },
+    { id: 4, num: '5.7', section: 'Financial', status: 'partial', confidence: 'medium',
+      title: 'Pension note discloses the discount-rate sensitivity analysis (GASB 68)',
+      page: 88, pageTitle: 'Note 9 — Pension Plan (IPERS)',
+      comment: 'GASB 68 pension disclosures are present: net pension liability, deferred inflows/outflows, and the actuarial assumptions table are all included. However, the required discount-rate sensitivity analysis (\u00b11%) appears abbreviated — only the +1% column is shown. Recommend the reviewer confirm whether the -1% sensitivity is disclosed elsewhere before marking fully met.',
+      cite: 'p. 88 — Actuarial assumptions',
+      hlText: 'The following presents the net pension liability of the District, calculated using the discount rate of 7.00%, as well as what the net pension liability would be if it were calculated using a discount rate that is 1 percentage point higher (8.00%).',
+      lines: [
+        'NOTE 9 \u2014 PENSION PLAN',
+        'The District participates in the Iowa Public Employees\u2019 Retirement System (IPERS), a cost-sharing multiple-employer defined benefit pension plan administered by the State of Iowa.',
+        'Actuarial assumptions: the total pension liability was determined using the entry age normal method, 2.60% inflation, and 3.25%\u20136.75% salary increases.',
+        '@hl',
+        'Sensitivity of the net pension liability to changes in the discount rate is presented in the table below.',
+      ] },
+    { id: 5, num: '7.3', section: 'Statistical', status: 'not_met', confidence: 'high',
+      title: 'Statistical section presents ten years of trend data',
+      page: 168, pageTitle: 'Statistical Section — Net Position by Component',
+      comment: 'The statistical section presents only SIX years of net-position trend data. The COE program requires TEN years of trend data (or all years since GASB 34 implementation, whichever is shorter, but no fewer than ten where available). This is a substantive deficiency and should be raised in the reviewer comments to the district.',
+      cite: 'p. 168 — Trend schedule',
+      hlText: 'Net Position by Component — Last Six Fiscal Years (accrual basis of accounting). Fiscal years 2020 through 2025 are presented.',
+      lines: [
+        'STATISTICAL SECTION (UNAUDITED)',
+        'This part of the District\u2019s annual comprehensive financial report presents detailed information as a context for understanding what the information in the financial statements says about the District\u2019s overall financial health.',
+        'FINANCIAL TRENDS',
+        '@hl',
+        'These schedules contain trend information to help the reader understand how the District\u2019s financial performance and well-being have changed over time.',
+      ] },
+    { id: 6, num: '6.2', section: 'Financial', status: 'met', confidence: 'high',
+      title: 'Budgetary comparison schedule for the General Fund is present',
+      page: 112, pageTitle: 'Budgetary Comparison Schedule — General Fund',
+      comment: 'Budgetary comparison schedule for the General Fund is present, presenting original budget, final budget, and actual amounts on the budgetary basis, with a reconciliation to GAAP. This is required supplementary information and is correctly placed.',
+      cite: 'p. 112 — Budgetary comparison',
+      hlText: 'Budgetary Comparison Schedule — General Fund. Original Budget, Final Budget, Actual (Budgetary Basis), and Variance with Final Budget are presented for the year ended June 30, 2025.',
+      lines: [
+        'REQUIRED SUPPLEMENTARY INFORMATION',
+        'The District prepares its annual budget on a basis consistent with Iowa Code and reconciles budgetary-basis amounts to the GAAP basis used in the fund financial statements.',
+        '@hl',
+        'Total revenues on a budgetary basis were $284.1 million against a final budget of $281.7 million, a favorable variance of $2.4 million.',
+        'Total expenditures were within appropriated amounts at the legal level of budgetary control.',
+      ] },
+    { id: 7, num: '5.11', section: 'Financial', status: 'cannot_determine', confidence: 'low',
+      title: 'Capital-asset note discloses depreciation methods and useful lives',
+      page: 95, pageTitle: 'Note 5 — Capital Assets',
+      verifier: 'The reviewer agent cited p. 95 for depreciation-method disclosure, but the verifier could not locate depreciation-method language on the cited page — the passage describes capital-asset additions and retirements only. Judgment downgraded and logged pending human review.',
+      comment: 'Capital-asset note appears present, but the AI could not confirm that depreciation methods and useful lives are disclosed on the cited page. Treat as unresolved until a reviewer locates the depreciation policy (likely in Note 1 — Summary of Significant Accounting Policies).',
+      cite: 'p. 95 — Capital assets (unconfirmed)',
+      hlText: 'Capital asset activity for the year ended June 30, 2025 was as follows: beginning balances, additions, retirements, and ending balances by major asset class.',
+      lines: [
+        'NOTE 5 \u2014 CAPITAL ASSETS',
+        '@hl',
+        'Land and construction in progress are not depreciated. The remaining capital assets are reported net of accumulated depreciation.',
+        'Additions during the year of $18.3 million relate primarily to the new elementary facility and technology infrastructure.',
+        '[Verifier note] No explicit statement of depreciation method (straight-line) or estimated useful lives located on this page.',
+      ] },
+    { id: 8, num: '4.9', section: 'Compliance', status: 'na', confidence: 'high',
+      title: 'Discretely presented component units reported per GASB 61',
+      page: 61, pageTitle: 'Note 1 — Reporting Entity',
+      comment: 'Criterion concerns presentation of discretely presented component units. The reporting-entity note states the District has no component units meeting the GASB 61 inclusion criteria. This criterion is therefore not applicable to this submission.',
+      cite: 'p. 61 — Reporting entity',
+      hlText: 'The District has no component units that meet the criteria for inclusion in the financial reporting entity under GASB Statement No. 61. Accordingly, no discretely presented or blended component units are reported.',
+      lines: [
+        'NOTE 1 \u2014 SUMMARY OF SIGNIFICANT ACCOUNTING POLICIES',
+        'A. Reporting Entity',
+        'The Davenport Community School District is a body corporate and politic governed by a seven-member elected Board of Education.',
+        '@hl',
+        'The accompanying financial statements present only the District and do not include any legally separate organizations.',
+      ] },
+  ];
+
+  meta = {
+    met: { label: 'Met', color: '#2e7d32', bg: 'rgba(46,125,50,0.12)', icon: 'check_circle', accent: '#2e7d32' },
+    not_met: { label: 'Not met', color: '#d32f2f', bg: 'rgba(211,47,47,0.12)', icon: 'cancel', accent: '#d32f2f' },
+    partial: { label: 'Partially met', color: '#b35300', bg: 'rgba(237,108,2,0.14)', icon: 'error', accent: '#ed6c02' },
+    na: { label: 'Not applicable', color: '#616161', bg: 'rgba(0,0,0,0.07)', icon: 'remove_circle_outline', accent: '#9e9e9e' },
+    cannot_determine: { label: 'Cannot determine', color: '#616161', bg: 'rgba(0,0,0,0.07)', icon: 'help_outline', accent: '#757575' },
+  };
+
+  conf = {
+    high: { label: 'High confidence', color: '#2e7d32', icon: 'signal_cellular_alt' },
+    medium: { label: 'Medium confidence', color: '#b35300', icon: 'signal_cellular_alt_2_bar' },
+    low: { label: 'Low confidence', color: '#d32f2f', icon: 'signal_cellular_alt_1_bar' },
+  };
+
+  setReview(id, st) {
+    this.setState(s => ({ reviews: { ...s.reviews, [id]: { state: st, comment: s.editingId === id ? s.editText : (s.reviews[id] && s.reviews[id].comment) } }, editingId: null }));
+  }
+
+  saveEdit() {
+    const id = this.state.editingId;
+    this.setState(s => ({ reviews: { ...s.reviews, [id]: { state: 'edited', comment: s.editText } }, editingId: null }));
+  }
+
+  renderVals() {
+    const { screen, filter, selectedId, editingId, editText, reviews, scrollTick, files, stage, gateRevealed, done, dragging } = this.state;
+
+    const stepRows = this.steps.map((s, i) => {
+      const st = done ? 'done' : stage > i ? 'done' : stage === i ? 'active' : 'pending';
+      return {
+        ...s,
+        circleBg: st === 'done' ? '#2e7d32' : st === 'active' ? '#1976d2' : '#e0e0e0',
+        circleColor: st === 'pending' ? 'rgba(0,0,0,0.4)' : '#fff',
+        iconName: st === 'done' ? 'check' : s.icon,
+        statusText: st === 'done' ? 'Done' : st === 'active' ? 'Processing…' : 'Pending',
+        statusColor: st === 'done' ? '#2e7d32' : st === 'active' ? '#1976d2' : 'rgba(0,0,0,0.4)',
+      };
+    });
+
+    const gateRows = this.gateItems.map((g, i) => {
+      const on = gateRevealed > i;
+      return { ...g, icon: on ? 'check_circle' : 'radio_button_unchecked', color: on ? '#2e7d32' : 'rgba(0,0,0,0.28)', text: on ? 'Pass' : '—' };
+    });
+
+    const fileRows = files.map(f => ({
+      ...f,
+      statusIcon: stage >= 1 ? 'check_circle' : 'hourglass_top',
+      statusColor: stage >= 1 ? '#2e7d32' : '#1976d2',
+      statusText: stage >= 1 ? 'Extracted' : 'Uploading…',
+    }));
+
+    const gateChip = done
+      ? { label: 'Passed', color: 'success' }
+      : stage >= 4 ? { label: 'Checking…', color: 'warning' }
+      : stage >= 0 ? { label: 'Queued', color: 'default' }
+      : { label: 'Awaiting files', color: 'default' };
+
+
+    const enriched = this.raw.map(f => {
+      const m = this.meta[f.status];
+      const c = this.conf[f.confidence];
+      const rv = reviews[f.id];
+      const needsHuman = !!f.verifier;
+      const isEditing = editingId === f.id;
+      const displayComment = rv && rv.state === 'edited' && rv.comment ? rv.comment : f.comment;
+      const sel = f.id === selectedId;
+      return {
+        ...f,
+        statusLabel: m.label, statusColor: m.color, statusBg: m.bg, statusIcon: m.icon,
+        accent: sel ? '#1976d2' : m.accent,
+        shadow: sel ? 'var(--mui-elevation-6)' : 'var(--mui-elevation-1)',
+        confLabel: c.label, confColor: c.color, confIcon: c.icon,
+        citeLabel: f.cite,
+        needsHuman, verifierReason: f.verifier || '',
+        isEditing,
+        showComment: !isEditing,
+        commentLabel: (rv && rv.state === 'edited') ? 'Reviewer comment (edited)' : 'AI draft comment',
+        displayComment,
+        reviewed: !!rv,
+        reviewLabel: rv ? ({ accepted: 'Accepted', rejected: 'Rejected', edited: 'Edited & accepted' })[rv.state] : '',
+        reviewColor: rv ? ({ accepted: '#2e7d32', rejected: '#d32f2f', edited: '#1565c0' })[rv.state] : '',
+        reviewBg: rv ? ({ accepted: 'rgba(46,125,50,0.12)', rejected: 'rgba(211,47,47,0.12)', edited: 'rgba(25,118,210,0.12)' })[rv.state] : '',
+        reviewIcon: rv ? ({ accepted: 'check_circle', rejected: 'cancel', edited: 'edit' })[rv.state] : '',
+        showActions: !rv && !isEditing,
+        onSelect: () => this.setState({ selectedId: f.id }),
+        onAccept: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setReview(f.id, 'accepted'); },
+        onReject: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setReview(f.id, 'rejected'); },
+        onEdit: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ editingId: f.id, editText: (rv && rv.comment) || f.comment, selectedId: f.id }); },
+        onUndo: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState(s => { const r = { ...s.reviews }; delete r[f.id]; return { reviews: r }; }); },
+      };
+    });
+
+    const filtered = enriched.filter(f =>
+      filter === 'all' ? true :
+      filter === 'needs_human' ? f.needsHuman :
+      f.status === filter);
+
+    const count = (pred) => enriched.filter(pred).length;
+    const mk = (key, label) => ({
+      key, label,
+      color: filter === key ? 'primary' : 'default',
+      variant: filter === key ? 'filled' : 'outlined',
+      onClick: () => this.setState({ filter: key }),
+    });
+    const filters = [
+      mk('all', 'All (' + enriched.length + ')'),
+      mk('needs_human', 'Needs human (' + count(f => f.needsHuman) + ')'),
+      mk('not_met', 'Not met (' + count(f => f.status === 'not_met') + ')'),
+      mk('partial', 'Partial (' + count(f => f.status === 'partial') + ')'),
+      mk('met', 'Met (' + count(f => f.status === 'met') + ')'),
+    ];
+
+    const selected = enriched.find(f => f.id === selectedId) || enriched[0];
+    const selLines = selected.lines.map((t, i) => {
+      const hl = t === '@hl';
+      return {
+        text: hl ? selected.hlText : t,
+        bg: hl ? '#fff2a8' : 'transparent',
+        pad: hl ? '8px 10px' : '0',
+        ring: hl ? '0 0 0 2px #f9c200' : 'none',
+        anchor: hl ? ('cite-anchor-' + scrollTick) : ('l' + i),
+      };
+    });
+
+    const reviewedCount = Object.keys(reviews).length;
+    const total = enriched.length;
+    const acceptedRelevant = enriched.filter(f => reviews[f.id] && reviews[f.id].state !== 'rejected').length;
+    const notReady = reviewedCount < total;
+
+    return {
+      isUpload: screen === 'upload',
+      isReview: screen === 'review',
+      onGoReview: () => this.setState({ screen: 'review' }),
+      onGoUpload: () => this.setState({ screen: 'upload' }),
+      appsActive: screen !== 'review',
+      // upload screen
+      fileRef: this.fileRef,
+      onFilesChosen: (e) => this.onFilesChosen(e),
+      onBrowse: () => { if (this.fileRef.current) this.fileRef.current.click(); },
+      onLoadSample: () => this.loadSample(),
+      onClearFiles: () => { this.clearTimers(); this.setState({ files: [], stage: -1, gateRevealed: 0, done: false }); },
+      onDragOver: (e) => { e.preventDefault(); if (!this.state.dragging) this.setState({ dragging: true }); },
+      onDragLeave: (e) => { e.preventDefault(); this.setState({ dragging: false }); },
+      onDrop: (e) => { e.preventDefault(); const f = [...(e.dataTransfer && e.dataTransfer.files || [])]; if (f.length) this.onFilesChosen({ target: { files: f } }); else this.loadSample(); },
+      dropBorder: dragging ? '#1976d2' : 'rgba(0,0,0,0.25)',
+      dropBg: dragging ? 'rgba(25,118,210,0.06)' : '#fafafa',
+      hasFiles: files.length > 0,
+      done,
+      fileRows,
+      stepRows,
+      gateRows,
+      gateChipLabel: gateChip.label,
+      gateChipColor: gateChip.color,
+      startDisabled: !done,
+      pipelineStarted: stage >= 0,
+      findings: filtered,
+      filters,
+      verifierConfirmed: total - 1,
+      totalCount: total,
+      reviewedCount,
+      progressPct: Math.round((reviewedCount / total) * 100) + '%',
+      selSection: selected.section,
+      selSectionUpper: (selected.section || '').toUpperCase() + ' SECTION',
+      selPage: selected.page,
+      selPageTitle: selected.pageTitle,
+      selLines,
+      selCiteTitle: 'Criterion ' + selected.num + ' — ' + selected.title,
+      editText,
+      onEditChange: (e) => this.setState({ editText: e.target.value }),
+      onEditSave: () => this.saveEdit(),
+      onEditCancel: () => this.setState({ editingId: null }),
+      onScrollCite: () => this.setState(s => ({ scrollTick: s.scrollTick + 1 }), () => {
+        const el = document.getElementById('cite-anchor-' + this.state.scrollTick);
+        if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }),
+      stop: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      notReady,
+      readyIcon: notReady ? 'pending_actions' : 'task_alt',
+      readyIconColor: notReady ? 'rgba(0,0,0,0.45)' : '#2e7d32',
+      readyMessage: notReady
+        ? (reviewedCount + ' of ' + total + ' findings confirmed — review the rest to enable the decision step.')
+        : ('All ' + total + ' findings confirmed · ' + acceptedRelevant + ' accepted. Ready to route for the Award / Conditional / Denied decision.'),
+    };
+  }
+}
+</script>
+</body>
+</html>

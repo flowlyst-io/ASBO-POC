@@ -1,0 +1,32 @@
+{
+  "_comment": "Pre-loaded public demo ACFRs (PRD F1). davenport_ia_fy2023 has a PARTIALLY degraded text layer: pypdf extracts garbage, but unpdf/pdf.js decodes most pages — measured 43/179 pages flagged needs_ocr by lib/ocr/detect.ts (24%, below the 30% whole-document 'degraded' threshold). Flagged pages are excluded from LLM context; it remains the OCR-fallback test case for phase 6. Note: the design prototype's 'Davenport FY2025 / 214 pages' labels are placeholder fiction; these are the real file facts.",
+  "samples": [
+    {
+      "id": "rockford_il_fy2023",
+      "file": "rockford_il_fy2023.pdf",
+      "districtName": "Rockford Public Schools, District No. 205",
+      "state": "IL",
+      "fiscalYearEnd": "2023-06-30",
+      "pages": 168,
+      "textQuality": "clean"
+    },
+    {
+      "id": "davenport_ia_fy2023",
+      "file": "davenport_ia_fy2023.pdf",
+      "districtName": "Davenport Community School District",
+      "state": "IA",
+      "fiscalYearEnd": "2023-06-30",
+      "pages": 179,
+      "textQuality": "degraded"
+    },
+    {
+      "id": "griffin_spalding_ga_fy2023",
+      "file": "griffin_spalding_ga_fy2023.pdf",
+      "districtName": "Griffin-Spalding County School System",
+      "state": "GA",
+      "fiscalYearEnd": "2023-06-30",
+      "pages": 180,
+      "textQuality": "clean"
+    }
+  ]
+}
