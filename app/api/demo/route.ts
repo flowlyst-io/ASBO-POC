@@ -1,9 +1,12 @@
+import path from "path";
+
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { getDb, schema } from "@/db/client";
 import { writeAudit } from "@/lib/audit";
 import { DemoRequestSchema } from "@/lib/schemas";
+import { blobExists, isBlobEnabled, putBlobFromFile } from "@/lib/storage";
 
 /**
  * POST /api/demo — register a pre-loaded sample ACFR as the active
@@ -27,6 +30,16 @@ export async function POST(request: Request) {
       { error: "Sample not seeded — run npm run db:seed" },
       { status: 404 },
     );
+  }
+
+  // On Vercel the sample PDF bytes live in ./samples (bundled with this
+  // function, see next.config.ts outputFileTracingIncludes) but not yet in
+  // Blob — extract reads via getBlob(head()), so copy the bytes into Blob the
+  // first time a sample is selected. Locally (no Blob token) getBlob falls back
+  // to reading ./samples directly, so there is nothing to do.
+  if (isBlobEnabled() && !(await blobExists(storageKey))) {
+    const localPath = path.join(process.cwd(), "samples", `${body.data.sampleId}.pdf`);
+    await putBlobFromFile(storageKey, localPath);
   }
 
   await writeAudit("human", "demo_sample_selected", null, { sampleId: body.data.sampleId });

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Snackbar, Typography } from "@mui/material";
 
 import AppShell from "@/components/shell/AppShell";
 import ContextBar from "@/components/review/ContextBar";
@@ -31,6 +31,7 @@ export default function ReviewPage({
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [markedReady, setMarkedReady] = React.useState(false);
   const [readyError, setReadyError] = React.useState<string | null>(null);
+  const [readyToast, setReadyToast] = React.useState(false);
 
   const filtered = findings.filter((f) => matchesFilter(f, filter));
   const selected =
@@ -40,8 +41,18 @@ export default function ReviewPage({
     setReadyError(null);
     try {
       const res = await fetch(`/api/runs/${runId}/ready`, { method: "POST" });
-      if (!res.ok) throw new Error(`Mark ready failed (${res.status})`);
+      if (!res.ok) {
+        let message = `Mark ready failed (${res.status})`;
+        try {
+          const body = (await res.json()) as { error?: string };
+          if (body.error) message = body.error;
+        } catch {
+          // non-JSON error body — keep the status message
+        }
+        throw new Error(message);
+      }
       setMarkedReady(true);
+      setReadyToast(true);
     } catch (err) {
       setReadyError(err instanceof Error ? err.message : String(err));
     }
@@ -111,7 +122,23 @@ export default function ReviewPage({
         <CitationViewer run={run} finding={selected} />
       </Box>
 
-      <BottomBar findings={findings} onMarkReady={() => void markReady()} markedReady={markedReady} />
+      <BottomBar
+        findings={findings}
+        onMarkReady={() => void markReady()}
+        markedReady={markedReady}
+        streaming={streaming}
+      />
+
+      <Snackbar
+        open={readyToast}
+        autoHideDuration={5000}
+        onClose={() => setReadyToast(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="success" onClose={() => setReadyToast(false)} sx={{ width: "100%" }}>
+          Marked ready for decision — sent to the decision queue
+        </Alert>
+      </Snackbar>
     </AppShell>
   );
 }

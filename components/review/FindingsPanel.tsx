@@ -6,10 +6,17 @@ import { Box, Chip, LinearProgress, Typography } from "@mui/material";
 import FindingCard from "@/components/review/FindingCard";
 import type { Finding, ReviewAction } from "@/lib/types";
 
-export type FindingFilter = "all" | "needs_human" | "not_met" | "partial" | "met";
+export type FindingFilter =
+  | "all"
+  | "unreviewed"
+  | "needs_human"
+  | "not_met"
+  | "partial"
+  | "met";
 
 const FILTERS: { key: FindingFilter; label: string }[] = [
   { key: "all", label: "All" },
+  { key: "unreviewed", label: "Unreviewed" },
   { key: "needs_human", label: "Needs human" },
   { key: "not_met", label: "Not met" },
   { key: "partial", label: "Partial" },
@@ -20,6 +27,8 @@ export function matchesFilter(finding: Finding, filter: FindingFilter): boolean 
   switch (filter) {
     case "all":
       return true;
+    case "unreviewed":
+      return finding.review === null;
     case "needs_human":
       return finding.verifierStatus === "flagged";
     case "not_met":

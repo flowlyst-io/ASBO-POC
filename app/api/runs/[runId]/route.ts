@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { getDb, schema } from "@/db/client";
+import { STALL_THRESHOLD_MS } from "@/lib/config";
+import { runLastActivityMs } from "@/lib/pipeline/orchestrate";
+import { triggerAdvance } from "@/lib/pipeline/trigger";
 import type { GateCheckResult, RunStatusPayload, RunStepState, StepKey } from "@/lib/types";
 import { STEP_ORDER } from "@/lib/types";
+
+const NON_TERMINAL: ReadonlyArray<string> = ["queued", "running"];
 
 /**
  * GET /api/runs/[runId] — the client poll payload (useRunStatus).
@@ -34,6 +39,22 @@ export async function GET(
     .select()
     .from(schema.runSteps)
     .where(eq(schema.runSteps.runId, runId));
+
+  // Auto-resume backstop: the self-advance chain can drop (dev-server restart,
+  // serverless kill, a 401/500 on the internal POST) and strand a run as
+  // 'queued'/'running' forever. The UI polls this endpoint every 2s, so if a
+  // non-terminal run has shown NO progress for STALL_THRESHOLD_MS we
+  // fire-and-forget a re-trigger. The threshold (not every poll) is essential:
+  // re-triggering on every poll would spawn concurrent chains — the hardened
+  // claim in orchestrate.ts only allows re-claiming a stale 'running' step, so
+  // this kick is idempotent-safe (a fresh in-flight step is left alone).
+  if (
+    NON_TERMINAL.includes(run.status) &&
+    Date.now() - runLastActivityMs(run, stepRows) > STALL_THRESHOLD_MS
+  ) {
+    triggerAdvance(run.id);
+  }
+
   const stepByKey = new Map(stepRows.map((s) => [s.step, s]));
   const steps: RunStepState[] = STEP_ORDER.map((key: StepKey) => {
     const row = stepByKey.get(key);

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 
+import { getDb, schema } from "@/db/client";
+import { writeAudit } from "@/lib/audit";
 import { getEnv } from "@/lib/config";
 import { advanceRun } from "@/lib/pipeline/orchestrate";
 import { triggerAdvance } from "@/lib/pipeline/trigger";
@@ -22,10 +25,30 @@ export async function POST(
 
   const { runId } = await params;
 
-  const result = await advanceRun(runId);
-  if (!result.done) {
-    triggerAdvance(runId);
+  try {
+    const result = await advanceRun(runId);
+    if (!result.done) {
+      triggerAdvance(runId);
+    }
+    return NextResponse.json(result);
+  } catch (err) {
+    // advanceRun() guards its step handlers internally, so reaching here means
+    // the SCAFFOLD threw (queued->running flip, step lookup, claim, currentStep
+    // write, or finalize). A scaffold throw must never leave the run
+    // non-terminal — otherwise it strands in 'running'/'queued' forever. Mark
+    // it failed best-effort so the UI and auto-resume both stop.
+    const message = err instanceof Error ? err.message : String(err);
+    try {
+      const db = await getDb();
+      await db
+        .update(schema.runs)
+        .set({ status: "failed", error: message, finishedAt: new Date() })
+        .where(eq(schema.runs.id, runId));
+      await writeAudit("system", "run_failed", runId, { error: message, scope: "advance_route" });
+    } catch {
+      // Best-effort: the DB may itself be the failure. The error is still
+      // surfaced in the 500 response and server logs.
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json(result);
 }

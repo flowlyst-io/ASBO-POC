@@ -144,7 +144,7 @@ function CommentEditor({
   );
 }
 
-/** One AI-prepared checklist finding, with accept / edit / reject actions. */
+/** One AI-prepared checklist finding, with confirm / edit / reject actions. */
 export default function FindingCard({
   finding,
   selected,
@@ -167,11 +167,11 @@ export default function FindingCard({
     if (!finding.review) return null;
     switch (finding.review.state) {
       case "accepted":
-        return { label: "Accepted", icon: <CheckCircleIcon sx={{ fontSize: 14 }} />, color: theme.palette.success.main, tint: alpha(theme.palette.success.main, 0.12) };
+        return { label: "Confirmed", icon: <CheckCircleIcon sx={{ fontSize: 14 }} />, color: theme.palette.success.main, tint: alpha(theme.palette.success.main, 0.12) };
       case "rejected":
         return { label: "Rejected", icon: <CancelIcon sx={{ fontSize: 14 }} />, color: theme.palette.error.main, tint: alpha(theme.palette.error.main, 0.12) };
       case "edited":
-        return { label: "Edited & accepted", icon: <EditIcon sx={{ fontSize: 14 }} />, color: theme.palette.primary.main, tint: alpha(theme.palette.primary.main, 0.1) };
+        return { label: "Edited & confirmed", icon: <EditIcon sx={{ fontSize: 14 }} />, color: theme.palette.primary.main, tint: alpha(theme.palette.primary.main, 0.1) };
     }
   })();
 
@@ -360,7 +360,7 @@ export default function FindingCard({
                   void review(finding.id, "accept");
                 }}
               >
-                Accept
+                Confirm
               </Button>
               <Button
                 size="small"

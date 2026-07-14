@@ -7,7 +7,13 @@ import { CriterionFindingSchema } from "@/lib/schemas";
 import { CHECKLIST_BATCH_SIZE } from "@/lib/types";
 
 import { buildExcerptLines, getPage, getSectionText } from "./context";
-import { getStepDetail, setStepDetail, type StepContext, type StepOutcome } from "./orchestrate";
+import {
+  getStepDetail,
+  setStepDetail,
+  touchStepActivity,
+  type StepContext,
+  type StepOutcome,
+} from "./orchestrate";
 
 /**
  * F3 checklist verification engine — the long step. Each advance invocation
@@ -36,10 +42,21 @@ export async function runChecklist({ db, runId, run }: StepContext): Promise<Ste
   const cursor = detail?.cursor ?? 0;
   const batch = criteria.slice(cursor, cursor + CHECKLIST_BATCH_SIZE);
 
+  // Exactly-once guard: if this batch is being reprocessed after a mid-batch
+  // crash+resume (the cursor only advances once the whole batch is written),
+  // skip any criterion that already has a finding for this run so resume never
+  // produces duplicate findings.
+  const existing = await db
+    .select({ criterionId: schema.findings.criterionId })
+    .from(schema.findings)
+    .where(eq(schema.findings.runId, runId));
+  const alreadyDone = new Set(existing.map((f) => f.criterionId));
+
   // Cache per-section context within the batch (prompt-cache-friendly too).
   const sectionText = new Map<string, string>();
 
   for (const criterion of batch) {
+    if (alreadyDone.has(criterion.id)) continue;
     if (!sectionText.has(criterion.section)) {
       sectionText.set(
         criterion.section,
@@ -90,6 +107,10 @@ export async function runChecklist({ db, runId, run }: StepContext): Promise<Ste
       lines,
       verifierStatus: "pending",
     });
+
+    // Heartbeat: keep the step's activity fresh through a long batch so the
+    // stale-reclaim / auto-resume logic never mistakes it for a dropped chain.
+    await touchStepActivity(db, runId, "checklist");
   }
 
   const nextCursor = cursor + batch.length;

@@ -30,8 +30,23 @@ export function isMockAi(): boolean {
 
 /** Origin for internal self-triggering of the advance chain. */
 export function getInternalOrigin(): string {
-  // Vercel provides VERCEL_URL; locally default to the dev server.
+  // Prefer an explicit canonical origin: on Vercel, VERCEL_URL is the
+  // deployment-specific domain that Deployment Protection guards, so self-calls
+  // to it get a 401 HTML wall. Setting INTERNAL_ORIGIN to the stable production
+  // URL lets the pipeline chain call itself unauthenticated-safe. Only fall back
+  // to VERCEL_URL, then to the local dev server.
+  const explicit = process.env.INTERNAL_ORIGIN;
+  if (explicit) return explicit;
   const vercelUrl = process.env.VERCEL_URL;
   if (vercelUrl) return `https://${vercelUrl}`;
-  return process.env.INTERNAL_ORIGIN ?? "http://localhost:3000";
+  return "http://localhost:3000";
 }
+
+/**
+ * A non-terminal run that has shown no progress for this long is considered
+ * stalled (its self-advance chain dropped). GET /api/runs/[id] re-triggers the
+ * advance chain past this threshold, and the orchestrator only re-claims a
+ * 'running' step once its activity is older than this. Kept comfortably above
+ * one bounded unit of work (a single checklist/verify batch).
+ */
+export const STALL_THRESHOLD_MS = 60_000;

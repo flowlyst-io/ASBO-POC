@@ -17,6 +17,11 @@ function isVercelBlobEnabled(): boolean {
   return getEnv().BLOB_READ_WRITE_TOKEN.length > 0;
 }
 
+/** True when Vercel Blob is configured (direct-to-blob uploads available). */
+export function isBlobEnabled(): boolean {
+  return isVercelBlobEnabled();
+}
+
 
 export async function putBlob(key: string, data: Buffer): Promise<void> {
   if (isVercelBlobEnabled()) {
@@ -47,6 +52,43 @@ export async function getBlob(key: string): Promise<Buffer> {
     }
     throw new Error(`Blob not found: ${key}`);
   }
+}
+
+/**
+ * Return blob metadata (byte size) for a key, or null when it does not exist.
+ * With Vercel Blob this is a `head()` call; locally it stats the file under
+ * ./.data/blobs (falling back to ./samples for pre-loaded demo keys).
+ */
+export async function statBlob(key: string): Promise<{ size: number } | null> {
+  if (isVercelBlobEnabled()) {
+    const { head, BlobNotFoundError } = await import("@vercel/blob");
+    try {
+      const meta = await head(key);
+      return { size: meta.size };
+    } catch (err) {
+      if (err instanceof BlobNotFoundError) return null;
+      throw err;
+    }
+  }
+  try {
+    const st = await fs.stat(path.join(LOCAL_ROOT, key));
+    return { size: st.size };
+  } catch {
+    if (key.startsWith("samples/")) {
+      try {
+        const st = await fs.stat(path.join(process.cwd(), key));
+        return { size: st.size };
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
+/** True when a blob exists for the given key. */
+export async function blobExists(key: string): Promise<boolean> {
+  return (await statBlob(key)) !== null;
 }
 
 /**

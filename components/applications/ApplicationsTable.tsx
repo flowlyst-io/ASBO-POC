@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 import type { ApplicationListItem, ReviewerSummary } from "@/lib/types";
 import AssignMenu from "@/components/applications/AssignMenu";
@@ -69,12 +70,13 @@ export default function ApplicationsTable({
             <TableCell>Classification</TableCell>
             <TableCell>Assignee</TableCell>
             <TableCell>Received</TableCell>
+            <TableCell padding="checkbox" />
           </TableRow>
         </TableHead>
         <TableBody>
           {visible.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+              <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                 <Typography sx={{ fontSize: 13.5, color: "text.secondary" }}>
                   {emptyLabel}
                 </Typography>
@@ -86,7 +88,11 @@ export default function ApplicationsTable({
               key={row.id}
               hover
               onClick={() => openRow(row)}
-              sx={{ cursor: "pointer", "&:last-child td": { borderBottom: 0 } }}
+              sx={{
+                cursor: "pointer",
+                "&:last-child td": { borderBottom: 0 },
+                "&:hover .row-open-chevron": { color: "primary.main" },
+              }}
             >
               <TableCell>
                 <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
@@ -128,6 +134,12 @@ export default function ApplicationsTable({
                 <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
                   {formatDate(row.createdAt)}
                 </Typography>
+              </TableCell>
+              <TableCell padding="checkbox" align="right">
+                <ChevronRightIcon
+                  className="row-open-chevron"
+                  sx={{ fontSize: 20, color: "text.disabled", display: "block" }}
+                />
               </TableCell>
             </TableRow>
           ))}

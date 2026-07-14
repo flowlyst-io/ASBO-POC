@@ -5,7 +5,7 @@
   "description": "ASBO Certificate of Excellence (COE) review automation POC — AI-prepared, page-cited ACFR findings with human-in-the-loop review.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node --env-file-if-exists=.env.local --import tsx db/migrate.ts && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

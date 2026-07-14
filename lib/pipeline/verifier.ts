@@ -6,7 +6,12 @@ import { writeAudit } from "@/lib/audit";
 import { VerifierVerdictSchema } from "@/lib/schemas";
 
 import { getPage } from "./context";
-import { setStepDetail, type StepContext, type StepOutcome } from "./orchestrate";
+import {
+  setStepDetail,
+  touchStepActivity,
+  type StepContext,
+  type StepOutcome,
+} from "./orchestrate";
 
 const VERIFY_BATCH_SIZE = 10;
 
@@ -30,6 +35,10 @@ export async function runVerifier({ db, runId }: StepContext): Promise<StepOutco
   const batch = pending.slice(0, VERIFY_BATCH_SIZE);
 
   for (const finding of batch) {
+    // Heartbeat: keep the step's activity fresh through a long batch so the
+    // stale-reclaim / auto-resume logic never mistakes it for a dropped chain.
+    await touchStepActivity(db, runId, "verify");
+
     // A finding with no locatable citation is auto-flagged — no LLM needed.
     if (finding.page == null || finding.hlText == null) {
       if (finding.status === "na" || finding.status === "cannot_determine") {

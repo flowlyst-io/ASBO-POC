@@ -38,6 +38,21 @@ export default function IntakePage() {
 
   const { run, error: runError } = useRunStatus(runId);
 
+  const startRun = async (appId: string) => {
+    setApplicationId(appId);
+    const runRes = await fetch("/api/runs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ applicationId: appId }),
+    });
+    if (!runRes.ok) {
+      const data = (await runRes.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(data?.error ?? `Run start failed (${runRes.status})`);
+    }
+    const started = (await runRes.json()) as { runId: string };
+    setRunId(started.runId);
+  };
+
   const startDemo = async (sampleId: SampleId) => {
     setStarting(true);
     setStartError(null);
@@ -49,16 +64,19 @@ export default function IntakePage() {
       });
       if (!demoRes.ok) throw new Error(`Sample load failed (${demoRes.status})`);
       const demo = (await demoRes.json()) as { applicationId: string };
-      setApplicationId(demo.applicationId);
+      await startRun(demo.applicationId);
+    } catch (err) {
+      setStartError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setStarting(false);
+    }
+  };
 
-      const runRes = await fetch("/api/runs", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ applicationId: demo.applicationId }),
-      });
-      if (!runRes.ok) throw new Error(`Run start failed (${runRes.status})`);
-      const started = (await runRes.json()) as { runId: string };
-      setRunId(started.runId);
+  const handleUploaded = async (appId: string) => {
+    setStarting(true);
+    setStartError(null);
+    try {
+      await startRun(appId);
     } catch (err) {
       setStartError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -154,6 +172,7 @@ export default function IntakePage() {
               <UploadCard
                 onLoadSample={(sampleId) => void startDemo(sampleId)}
                 onFiles={handleFiles}
+                onUploaded={(appId) => void handleUploaded(appId)}
                 disabled={starting || runId !== null}
               />
               {hasIntake && files.length > 0 && (
