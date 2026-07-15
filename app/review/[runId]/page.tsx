@@ -34,16 +34,41 @@ export default function ReviewPage({
   const [markedReady, setMarkedReady] = React.useState(false);
   const [readyError, setReadyError] = React.useState<string | null>(null);
   const [readyToast, setReadyToast] = React.useState(false);
-  const [viewerCollapsed, setViewerCollapsed] = React.useState(false);
+  // On a laptop-sized window start with the document viewer hidden so the
+  // criteria get the full width. Lazy init is hydration-safe here: the
+  // panels only render after the client-side run fetch resolves.
+  const [viewerCollapsed, setViewerCollapsed] = React.useState(
+    () => typeof window !== "undefined" && window.innerWidth < 1280,
+  );
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
   const filtered = findings.filter((f) => matchesFilter(f, filter));
   const selected =
     findings.find((f) => f.id === selectedId) ?? filtered[0] ?? findings[0] ?? null;
 
-  // Citation-link click: select the finding AND bring the viewer back.
+  // Citation-link click: select + expand the finding AND bring the viewer back.
   const openCitation = (id: string) => {
     setSelectedId(id);
+    setExpandedId(id);
     setViewerCollapsed(false);
+  };
+
+  /** Accordion toggle from a card header — selecting drives the viewer too. */
+  const toggleExpand = (id: string) => {
+    setSelectedId(id);
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  /** Force select + expand (used by "Next unreviewed"). */
+  const reveal = (id: string) => {
+    setSelectedId(id);
+    setExpandedId(id);
+  };
+
+  /** Editing implies the card is open. */
+  const startEdit = (id: string) => {
+    setExpandedId(id);
+    setEditingId(id);
   };
 
   const markReady = async () => {
@@ -127,9 +152,12 @@ export default function ReviewPage({
           onFilter={(next) => setFilter(next)}
           selectedId={selected?.id ?? null}
           onSelect={(id) => setSelectedId(id)}
+          expandedId={expandedId}
+          onToggleExpand={toggleExpand}
+          onReveal={reveal}
           onOpenCitation={openCitation}
           editingId={editingId}
-          onEditStart={(id) => setEditingId(id)}
+          onEditStart={startEdit}
           onEditCancel={() => setEditingId(null)}
           review={review}
           streaming={streaming}

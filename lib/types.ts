@@ -223,6 +223,25 @@ export interface RunStatusPayload {
   };
 }
 
+/** One matching page from GET /api/documents/[documentId]/search. */
+export interface DocumentSearchMatch {
+  pageNumber: number;
+  /** ~120 chars of context around the first occurrence. */
+  snippet: string;
+  /** Occurrences of the term on this page. */
+  hitCount: number;
+}
+
+/** Payload for GET /api/documents/[documentId]/search?q=… */
+export interface DocumentSearchPayload {
+  documentId: string;
+  query: string;
+  matches: DocumentSearchMatch[];
+  totalMatches: number;
+  /** True when more than the returned page limit matched. */
+  capped: boolean;
+}
+
 /** Payload for GET /api/runs/[runId]/findings. */
 export interface FindingsPayload {
   runId: string;

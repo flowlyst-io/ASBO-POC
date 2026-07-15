@@ -19,6 +19,8 @@ import CheckIcon from "@mui/icons-material/Check";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 import { viewerTokens } from "@/lib/theme";
 import type { Confidence, Finding, FindingStatus, ReviewAction } from "@/lib/types";
@@ -26,8 +28,11 @@ import type { Confidence, Finding, FindingStatus, ReviewAction } from "@/lib/typ
 export interface FindingCardProps {
   finding: Finding;
   selected: boolean;
+  /** Accordion state — fully controlled by the page (survives findings polling). */
+  expanded: boolean;
   editing: boolean;
   onSelect: () => void;
+  onToggleExpand: () => void;
   /** Citation-link click: select AND reopen the document viewer if hidden. */
   onOpenCitation?: () => void;
   onEditStart: () => void;
@@ -146,12 +151,19 @@ function CommentEditor({
   );
 }
 
-/** One AI-prepared checklist finding, with confirm / edit / reject actions. */
+/**
+ * One AI-prepared checklist finding. Renders as a compact accordion row
+ * (caret, #num, title, status, review indicator); expanding reveals the full
+ * detail with the Confirm / Edit / Reject actions — reading before acting is
+ * the deliberate gesture (coe-domain: humans decide).
+ */
 export default function FindingCard({
   finding,
   selected,
+  expanded,
   editing,
   onSelect,
+  onToggleExpand,
   onOpenCitation,
   onEditStart,
   onEditCancel,
@@ -178,6 +190,24 @@ export default function FindingCard({
     }
   })();
 
+  const showDetail = expanded || editing;
+
+  // Compact-row review indicator (far right): reviewed state, verifier flag,
+  // or hollow circle for "not yet reviewed".
+  const compactIndicator = finding.review ? (
+    finding.review.state === "accepted" ? (
+      <CheckCircleIcon titleAccess="Confirmed" sx={{ fontSize: 18, color: "success.main" }} />
+    ) : finding.review.state === "rejected" ? (
+      <CancelIcon titleAccess="Rejected" sx={{ fontSize: 18, color: "error.main" }} />
+    ) : (
+      <EditIcon titleAccess="Edited & confirmed" sx={{ fontSize: 18, color: "primary.main" }} />
+    )
+  ) : finding.verifierStatus === "flagged" ? (
+    <ReportProblemIcon titleAccess="Needs human" sx={{ fontSize: 18, color: "warning.main" }} />
+  ) : (
+    <RadioButtonUncheckedIcon titleAccess="Unreviewed" sx={{ fontSize: 18, color: "text.disabled" }} />
+  );
+
   return (
     <Paper
       elevation={selected ? 6 : 1}
@@ -185,8 +215,8 @@ export default function FindingCard({
       sx={{
         position: "relative",
         cursor: "pointer",
-        px: 2.25,
-        py: 2,
+        px: 2,
+        py: showDetail ? 2 : 1.25,
         overflow: "hidden",
         border: `1px solid ${viewerTokens.cardBorder}`,
         transition: "box-shadow 150ms cubic-bezier(0.4,0,0.2,1)",
@@ -201,18 +231,31 @@ export default function FindingCard({
         },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            variant="overline"
-            sx={{ fontSize: 10.5, letterSpacing: 0.8, color: "text.secondary", lineHeight: 1.6 }}
-          >
-            {finding.section.toUpperCase()} · CRITERION {finding.num}
-          </Typography>
-          <Typography sx={{ fontSize: 16, fontWeight: 500, lineHeight: 1.3 }}>
-            {finding.title}
-          </Typography>
-        </Box>
+      <Box
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleExpand();
+        }}
+        sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}
+      >
+        <ExpandMoreIcon
+          sx={{
+            fontSize: 20,
+            color: "text.secondary",
+            flexShrink: 0,
+            transform: showDetail ? "rotate(180deg)" : "none",
+            transition: "transform 150ms cubic-bezier(0.4,0,0.2,1)",
+          }}
+        />
+        <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: "text.secondary", flexShrink: 0 }}>
+          #{finding.num}
+        </Typography>
+        <Typography
+          noWrap={!showDetail}
+          sx={{ fontSize: showDetail ? 16 : 14, fontWeight: 500, lineHeight: 1.3, flex: 1, minWidth: 0 }}
+        >
+          {finding.title}
+        </Typography>
         <Box
           sx={{
             display: "inline-flex",
@@ -231,9 +274,28 @@ export default function FindingCard({
             {meta.label}
           </Typography>
         </Box>
+        <Box sx={{ display: "inline-flex", alignItems: "center", flexShrink: 0 }}>
+          {compactIndicator}
+        </Box>
       </Box>
 
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap", mt: 1 }}>
+      {showDetail && (
+        <>
+      <Typography
+        variant="overline"
+        sx={{
+          display: "block",
+          fontSize: 10.5,
+          letterSpacing: 0.8,
+          color: "text.secondary",
+          lineHeight: 1.6,
+          mt: 1,
+        }}
+      >
+        {finding.section.toUpperCase()} · CRITERION {finding.num}
+      </Typography>
+
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap", mt: 0.5 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: conf.color }}>
           {conf.icon}
           <Typography sx={{ fontSize: 12, fontWeight: 500, color: "inherit" }}>
@@ -391,6 +453,8 @@ export default function FindingCard({
             </>
           )}
         </Box>
+      )}
+        </>
       )}
     </Paper>
   );

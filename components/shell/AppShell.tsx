@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   AppBar,
   Avatar,
@@ -52,6 +52,44 @@ const QUEUE_NAV: NavEntry[] = [
   { label: "Assigned to me", icon: <RateReviewIcon />, href: "/queue/assigned", countKey: "assignedToMe" },
   { label: "Completed", icon: <HistoryIcon />, href: "/queue/completed", countKey: "completed" },
 ];
+
+/**
+ * Top-bar search: filters the applications list by district/state. Enter
+ * navigates to /?q=… from anywhere; the home page reads the param and
+ * filters client-side. Needs its own Suspense boundary (useSearchParams).
+ */
+function TopBarSearch() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [q, setQ] = React.useState(params.get("q") ?? "");
+
+  const submit = () => {
+    const term = q.trim();
+    router.push(term ? `/?q=${encodeURIComponent(term)}` : "/");
+  };
+
+  return (
+    <TextField
+      size="small"
+      placeholder="Search applications, districts…"
+      value={q}
+      onChange={(e) => setQ(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") submit();
+      }}
+      sx={{ width: 300 }}
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" sx={{ color: "text.secondary" }} />
+            </InputAdornment>
+          ),
+        },
+      }}
+    />
+  );
+}
 
 /** "/" owns the applications list plus the intake and review flows. */
 function isNavActive(href: string, pathname: string): boolean {
@@ -217,20 +255,9 @@ export default function AppShell({ children }: AppShellProps) {
 
           <Box sx={{ flex: 1 }} />
 
-          <TextField
-            size="small"
-            placeholder="Search applications, districts…"
-            sx={{ width: 300 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" sx={{ color: "text.secondary" }} />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
+          <React.Suspense fallback={<Box sx={{ width: 300 }} />}>
+            <TopBarSearch />
+          </React.Suspense>
           <IconButton size="small" aria-label="help" sx={{ color: "text.secondary" }}>
             <HelpOutlineIcon />
           </IconButton>

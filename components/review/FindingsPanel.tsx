@@ -1,11 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { Alert, Box, Button, Chip, LinearProgress, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  InputAdornment,
+  LinearProgress,
+  TextField,
+  Typography,
+} from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ArticleIcon from "@mui/icons-material/Article";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
+import SearchIcon from "@mui/icons-material/Search";
 
 import FindingCard from "@/components/review/FindingCard";
 import type { Finding, ReviewAction } from "@/lib/types";
@@ -62,12 +72,29 @@ export function matchesFilter(finding: Finding, filter: FindingFilter): boolean 
   }
 }
 
+/** Case-insensitive keyword match over num / title / comment / cite. */
+function matchesKeyword(finding: Finding, keyword: string): boolean {
+  if (!keyword) return true;
+  const kw = keyword.toLowerCase();
+  return (
+    finding.num.toLowerCase().includes(kw) ||
+    finding.title.toLowerCase().includes(kw) ||
+    finding.comment.toLowerCase().includes(kw) ||
+    (finding.cite ?? "").toLowerCase().includes(kw)
+  );
+}
+
 export interface FindingsPanelProps {
   findings: Finding[];
   filter: FindingFilter;
   onFilter: (filter: FindingFilter) => void;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Accordion: id of the expanded card (page-owned). */
+  expandedId: string | null;
+  onToggleExpand: (id: string) => void;
+  /** Force select + expand (used by "Next unreviewed"). */
+  onReveal: (id: string) => void;
   /** Citation-link click on a card: select + reopen the document viewer. */
   onOpenCitation?: (id: string) => void;
   editingId: string | null;
@@ -88,6 +115,9 @@ export default function FindingsPanel({
   onFilter,
   selectedId,
   onSelect,
+  expandedId,
+  onToggleExpand,
+  onReveal,
   onOpenCitation,
   editingId,
   onEditStart,
@@ -97,7 +127,11 @@ export default function FindingsPanel({
   viewerCollapsed = false,
   onToggleViewer,
 }: FindingsPanelProps) {
-  const filtered = findings.filter((f) => matchesFilter(f, filter));
+  const [keyword, setKeyword] = React.useState("");
+  const kw = keyword.trim();
+
+  const keywordFiltered = findings.filter((f) => matchesKeyword(f, kw));
+  const filtered = keywordFiltered.filter((f) => matchesFilter(f, filter));
 
   const introDismissed = React.useSyncExternalStore(
     subscribeIntro,
@@ -111,18 +145,18 @@ export default function FindingsPanel({
 
   // Next unreviewed card after the selected one, within the visible filter
   // (keeps the target mounted); wraps to the start.
-  const nextUnreviewedId = React.useMemo(() => {
+  const nextUnreviewedId = (() => {
     const start = filtered.findIndex((f) => f.id === selectedId);
     for (let offset = 1; offset <= filtered.length; offset += 1) {
       const candidate = filtered[(start + offset) % filtered.length];
       if (candidate && candidate.review === null) return candidate.id;
     }
     return null;
-  }, [filtered, selectedId]);
+  })();
 
   const goToNextUnreviewed = () => {
     if (!nextUnreviewedId) return;
-    onSelect(nextUnreviewedId);
+    onReveal(nextUnreviewedId);
     const el = cardRefs.current.get(nextUnreviewedId);
     const container = scrollRef.current;
     if (!el || !container) return;
@@ -190,10 +224,27 @@ export default function FindingsPanel({
           >
             Filter
           </Typography>
+          <TextField
+            size="small"
+            placeholder="Keyword…"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            sx={{ ml: 1, flex: 1, maxWidth: 240 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ fontSize: 16 }} />
+                  </InputAdornment>
+                ),
+                sx: { fontSize: 13, "& input": { py: 0.5 } },
+              },
+            }}
+          />
         </Box>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 0.5 }}>
           {FILTERS.map(({ key, label }) => {
-            const count = findings.filter((f) => matchesFilter(f, key)).length;
+            const count = keywordFiltered.filter((f) => matchesFilter(f, key)).length;
             const active = filter === key;
             return (
               <Chip
@@ -243,7 +294,9 @@ export default function FindingsPanel({
                 ? streaming
                   ? "Findings will stream in as the checklist workers finish…"
                   : "No findings for this run."
-                : "No findings match this filter."}
+                : kw
+                  ? `No findings match “${kw}”.`
+                  : "No findings match this filter."}
             </Typography>
           ) : (
             filtered.map((finding) => (
@@ -257,8 +310,10 @@ export default function FindingsPanel({
                 <FindingCard
                   finding={finding}
                   selected={finding.id === selectedId}
+                  expanded={finding.id === expandedId}
                   editing={finding.id === editingId}
                   onSelect={() => onSelect(finding.id)}
+                  onToggleExpand={() => onToggleExpand(finding.id)}
                   onOpenCitation={
                     onOpenCitation ? () => onOpenCitation(finding.id) : undefined
                   }
