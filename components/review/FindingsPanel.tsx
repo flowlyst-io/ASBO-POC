@@ -186,21 +186,23 @@ export default function FindingsPanel({
         bgcolor: "background.default",
       }}
     >
-      <Box sx={{ bgcolor: "background.paper", px: 2, pt: 1.5, pb: 1.5, borderBottom: 1, borderColor: "divider" }}>
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontSize: 15, fontWeight: 500 }}>Checklist findings</Typography>
-            <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-              AI-prepared · reviewer confirms each
-              {streaming ? " · streaming in…" : ""}
+      <Box sx={{ bgcolor: "background.paper", px: 1.5, pt: 0.75, pb: 0.75, borderBottom: 1, borderColor: "divider" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, minWidth: 0 }}>
+          <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600, flexShrink: 0 }}>
+            Checklist findings
+          </Typography>
+          {streaming && (
+            <Typography sx={{ fontSize: 11.5, color: "text.secondary", flexShrink: 0 }}>
+              · streaming in…
             </Typography>
-          </Box>
+          )}
+          <Box sx={{ flex: 1 }} />
           <Button
             size="small"
-            startIcon={<SkipNextIcon />}
+            startIcon={<SkipNextIcon sx={{ fontSize: 16 }} />}
             disabled={!nextUnreviewedId}
             onClick={goToNextUnreviewed}
-            sx={{ flexShrink: 0 }}
+            sx={{ flexShrink: 0, fontSize: 12, py: 0.25, px: 0.75, minWidth: 0 }}
           >
             Next unreviewed
           </Button>
@@ -208,41 +210,16 @@ export default function FindingsPanel({
             <Button
               size="small"
               variant="outlined"
-              startIcon={viewerCollapsed ? <ArticleIcon /> : <MenuOpenIcon />}
+              startIcon={viewerCollapsed ? <ArticleIcon sx={{ fontSize: 16 }} /> : <MenuOpenIcon sx={{ fontSize: 16 }} />}
               onClick={onToggleViewer}
-              sx={{ flexShrink: 0 }}
+              sx={{ flexShrink: 0, fontSize: 12, py: 0.25, px: 0.75, minWidth: 0 }}
             >
               {viewerCollapsed ? "Show document" : "Hide document"}
             </Button>
           )}
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}>
-          <FilterListIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-          <Typography
-            variant="overline"
-            sx={{ fontSize: 10.5, letterSpacing: 0.8, color: "text.secondary", lineHeight: 1.6 }}
-          >
-            Filter
-          </Typography>
-          <TextField
-            size="small"
-            placeholder="Keyword…"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            sx={{ ml: 1, flex: 1, maxWidth: 240 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ fontSize: 16 }} />
-                  </InputAdornment>
-                ),
-                sx: { fontSize: 13, "& input": { py: 0.5 } },
-              },
-            }}
-          />
-        </Box>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 0.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5, mt: 0.75 }}>
+          <FilterListIcon sx={{ fontSize: 15, color: "text.secondary" }} />
           {FILTERS.map(({ key, label }) => {
             const count = keywordFiltered.filter((f) => matchesFilter(f, key)).length;
             const active = filter === key;
@@ -254,11 +231,29 @@ export default function FindingsPanel({
                 color={active ? "primary" : "default"}
                 variant={active ? "filled" : "outlined"}
                 onClick={() => onFilter(key)}
+                sx={{ height: 22, fontSize: 11.5 }}
               />
             );
           })}
+          <TextField
+            size="small"
+            placeholder="Keyword…"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            sx={{ flex: 1, minWidth: 110, maxWidth: 180 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ fontSize: 15 }} />
+                  </InputAdornment>
+                ),
+                sx: { fontSize: 12.5, "& input": { py: 0.4 } },
+              },
+            }}
+          />
         </Box>
-        {streaming && <LinearProgress sx={{ mt: 1.25, height: 3, borderRadius: 2 }} />}
+        {streaming && <LinearProgress sx={{ mt: 0.75, height: 3, borderRadius: 2 }} />}
       </Box>
 
       <Box
@@ -267,14 +262,14 @@ export default function FindingsPanel({
           flex: 1,
           minHeight: 0,
           overflowY: "auto",
-          p: 1.5,
+          p: 1,
         }}
       >
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
-            gap: 1.5,
+            gap: 1,
             // Comfortable centered reading width when the panel is full-width.
             maxWidth: viewerCollapsed ? 820 : "none",
             width: "100%",
