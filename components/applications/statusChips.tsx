@@ -15,6 +15,7 @@ const RUN_STATUS_CHIP: Record<RunStatus, { label: string; color: ChipColor }> = 
   complete: { label: "Complete", color: "success" },
   failed: { label: "Failed", color: "error" },
   canceled: { label: "Canceled", color: "default" },
+  rejected: { label: "Rejected", color: "error" },
 };
 
 /** Pipeline-run status pill for list rows; null renders an outlined "No run". */

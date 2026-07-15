@@ -97,6 +97,7 @@ export async function GET(
     status: run.status,
     currentStep: run.currentStep,
     gatePassed: run.gatePassed,
+    gateOverride: run.gateOverride,
     classification: run.classification,
     classificationRationale: run.classificationRationale,
     checklistVersion: run.checklistVersion,

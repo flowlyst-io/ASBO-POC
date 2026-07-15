@@ -55,7 +55,7 @@ export async function advanceRun(runId: string): Promise<AdvanceResult> {
 
   const [run] = await db.select().from(schema.runs).where(eq(schema.runs.id, runId));
   if (!run) throw new Error(`Run not found: ${runId}`);
-  if (["awaiting_review", "complete", "failed", "canceled"].includes(run.status)) {
+  if (["awaiting_review", "complete", "failed", "canceled", "rejected"].includes(run.status)) {
     return { done: true, status: run.status, step: null };
   }
 
@@ -79,7 +79,7 @@ export async function advanceRun(runId: string): Promise<AdvanceResult> {
   });
 
   if (!next) {
-    await finalizeRun(db, runId, run.gatePassed !== false);
+    await finalizeRun(db, runId, run.gatePassed !== false || run.gateOverride);
     return { done: true, status: "awaiting_review", step: null };
   }
 

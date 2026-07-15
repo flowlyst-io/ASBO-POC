@@ -12,9 +12,12 @@ import FindingsPanel, {
 } from "@/components/review/FindingsPanel";
 import CitationViewer from "@/components/review/CitationViewer";
 import BottomBar from "@/components/review/BottomBar";
+import ConfirmRejectionDialog from "@/components/intake/ConfirmRejectionDialog";
+import { CHECK_LABELS, GateCheckIcon } from "@/components/intake/gateCheckLabels";
 import { useRunStatus } from "@/lib/hooks/useRunStatus";
 import { useFindings } from "@/lib/hooks/useFindings";
 import { useReviewers } from "@/lib/hooks/useReviewers";
+import { postGateDecision, type GateDecisionAction } from "@/lib/gateDecision";
 
 /** Screen 2 — reviewer workspace for one run. */
 export default function ReviewPage({
@@ -41,6 +44,25 @@ export default function ReviewPage({
     () => typeof window !== "undefined" && window.innerWidth < 1280,
   );
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = React.useState(false);
+  const [gateActionPending, setGateActionPending] = React.useState(false);
+  const [gateActionError, setGateActionError] = React.useState<string | null>(null);
+
+  const handleGateDecision = async (action: GateDecisionAction) => {
+    setGateActionPending(true);
+    setGateActionError(null);
+    try {
+      await postGateDecision(runId, action);
+    } catch (err) {
+      setGateActionError(err instanceof Error ? err.message : String(err));
+    } finally {
+      // Sync with the outcome either way; after an override the hook resumes
+      // polling and this page flows into the normal streaming view.
+      await refresh();
+      setGateActionPending(false);
+      setRejectDialogOpen(false);
+    }
+  };
 
   const filtered = findings.filter((f) => matchesFilter(f, filter));
   const selected =
@@ -126,6 +148,102 @@ export default function ReviewPage({
             </>
           )}
         </Box>
+      </AppShell>
+    );
+  }
+
+  // Gate-blocked runs have no prepared findings: a confirmed rejection is
+  // read-only; a flagged-but-undecided run gets the same confirm/override
+  // actions as the intake screen so it isn't a dead end from the list view.
+  const gateBlocked =
+    run.status === "rejected" || (run.gatePassed === false && !run.gateOverride);
+  if (gateBlocked) {
+    const flaggedChecks = run.gateChecks.filter(
+      (c) => c.status === "fail" || c.status === "needs_human",
+    );
+    const rejected = run.status === "rejected";
+    return (
+      <AppShell>
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            p: 4,
+          }}
+        >
+          <Box sx={{ width: "100%", maxWidth: 560, display: "flex", flexDirection: "column", gap: 2 }}>
+            <Alert severity={rejected ? "error" : "warning"}>
+              {rejected
+                ? `${run.application.districtName} was rejected at the completeness gate — the rejection was confirmed by a reviewer.`
+                : `${run.application.districtName} was flagged by the completeness gate and has no prepared findings. Confirm the rejection or override to proceed with review preparation.`}
+            </Alert>
+            {gateActionError && <Alert severity="error">{gateActionError}</Alert>}
+
+            <Box sx={{ bgcolor: "background.paper", borderRadius: "8px", p: 2.5, boxShadow: 1 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 500, mb: 0.5 }}>
+                Flagged completeness checks
+              </Typography>
+              {flaggedChecks.map((check) => (
+                <Box
+                  key={check.checkKey}
+                  sx={{ display: "flex", gap: 1.25, py: 1, borderTop: 1, borderColor: "divider" }}
+                >
+                  <Box sx={{ pt: 0.2 }}>
+                    <GateCheckIcon status={check.status} />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      {CHECK_LABELS[check.checkKey]}
+                    </Typography>
+                    {check.explanation && (
+                      <Typography sx={{ fontSize: 12.5, color: "text.secondary", mt: 0.25 }}>
+                        {check.explanation}
+                        {check.page !== null ? ` (p. ${check.page})` : ""}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+
+            <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+              {!rejected && (
+                <>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => setRejectDialogOpen(true)}
+                    disabled={gateActionPending}
+                  >
+                    Confirm rejection
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => void handleGateDecision("override")}
+                    disabled={gateActionPending}
+                  >
+                    Override &amp; proceed to review
+                  </Button>
+                </>
+              )}
+              <Button component={Link} href="/" variant="text">
+                Back to applications
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+
+        <ConfirmRejectionDialog
+          open={rejectDialogOpen}
+          districtName={run.application.districtName}
+          checks={flaggedChecks}
+          confirming={gateActionPending}
+          onClose={() => setRejectDialogOpen(false)}
+          onConfirm={() => void handleGateDecision("confirm_rejection")}
+        />
       </AppShell>
     );
   }

@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env.local --import tsx db/migrate.ts",
     "db:seed": "node --env-file-if-exists=.env.local --import tsx db/seed.ts",
-    "stub-run": "node --env-file-if-exists=.env.local --import tsx scripts/stub-run.ts"
+    "stub-run": "node --env-file-if-exists=.env.local --import tsx scripts/stub-run.ts",
+    "gate-e2e": "node --env-file-if-exists=.env.local --import tsx scripts/gate-decision-e2e.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",

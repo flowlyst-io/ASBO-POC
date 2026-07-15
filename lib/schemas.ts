@@ -107,6 +107,11 @@ export const ReviewActionRequestSchema = z.object({
   comment: z.string().max(5000).optional(),
 });
 
+/** POST /api/runs/[runId]/gate-decision — human confirms or overrides a gate failure. */
+export const GateDecisionRequestSchema = z.object({
+  action: z.enum(["confirm_rejection", "override"]),
+});
+
 export const DemoRequestSchema = z.object({
   sampleId: z.enum(["rockford_il_fy2023", "davenport_ia_fy2023", "griffin_spalding_ga_fy2023"]),
 });

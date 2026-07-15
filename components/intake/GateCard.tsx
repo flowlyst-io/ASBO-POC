@@ -3,10 +3,8 @@
 import * as React from "react";
 import { alpha, useTheme } from "@mui/material/styles";
 import { Box, Button, Chip, Paper, Typography } from "@mui/material";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 import {
@@ -17,23 +15,22 @@ import {
   type RunStatus,
 } from "@/lib/types";
 
+import { CHECK_LABELS, GateCheckIcon } from "./gateCheckLabels";
+
 export interface GateCardProps {
   gateChecks: GateCheckResult[];
   /** Latest run status; null when no run has been started. */
   runStatus: RunStatus | null;
   /** RunStatusPayload.gatePassed for the current run (null while pending). */
   gatePassed?: boolean | null;
+  /** RunStatusPayload.gateOverride — human chose to proceed despite the flag. */
+  gateOverride?: boolean;
+  /** True while a confirm/override request is in flight. */
+  actionPending?: boolean;
   onOpenReview: () => void;
+  onConfirmRejection?: () => void;
+  onOverride?: () => void;
 }
-
-const CHECK_LABELS: Record<GateCheckKey, string> = {
-  clean_opinion: "Auditor's report — unmodified (clean) opinion",
-  mdna_present: "MD&A present",
-  basic_statements: "Required basic financial statements & notes",
-  statistical_section: "Statistical section present",
-  coe_checklist_attached: "COE checklist attached",
-  application_form_fee: "Application form & fee status",
-};
 
 function CheckRowStatus({ status }: { status: GateStatus }) {
   switch (status) {
@@ -56,26 +53,17 @@ function CheckRowStatus({ status }: { status: GateStatus }) {
   }
 }
 
-function CheckRowIcon({ status }: { status: GateStatus }) {
-  const sx = { fontSize: 18 } as const;
-  switch (status) {
-    case "pass":
-      return <CheckCircleIcon sx={{ ...sx, color: "success.main" }} />;
-    case "fail":
-      return <CancelIcon sx={{ ...sx, color: "error.main" }} />;
-    case "needs_human":
-      return <HelpOutlineIcon sx={{ ...sx, color: "warning.main" }} />;
-    default:
-      return <RadioButtonUncheckedIcon sx={{ ...sx, color: "rgba(0,0,0,0.28)" }} />;
-  }
-}
-
-/** Screen 1 completeness gate card: status chip, six check rows, pass banner. */
+/** Screen 1 completeness gate card: status chip, six check rows, and the
+ * flagged-state banner where a human confirms or overrides the rejection. */
 export default function GateCard({
   gateChecks,
   runStatus,
   gatePassed = null,
+  gateOverride = false,
+  actionPending = false,
   onOpenReview,
+  onConfirmRejection,
+  onOverride,
 }: GateCardProps) {
   const theme = useTheme();
 
@@ -88,7 +76,11 @@ export default function GateCard({
   const anyPending = statuses.some((s) => s === "pending");
 
   let chip: { label: string; color: "default" | "warning" | "success" | "error" };
-  if (runStatus === null) {
+  if (runStatus === "rejected") {
+    chip = { label: "Rejected", color: "error" };
+  } else if (gateOverride) {
+    chip = { label: "Overridden", color: "warning" };
+  } else if (runStatus === null) {
     chip = { label: "Awaiting files", color: "default" };
   } else if (runStatus === "queued") {
     chip = { label: "Queued", color: "default" };
@@ -100,10 +92,26 @@ export default function GateCard({
     chip = { label: "Checking…", color: "warning" };
   }
 
-  const showBanner =
+  const showPassedBanner =
     gatePassed !== false &&
     allPassed &&
     (runStatus === "awaiting_review" || runStatus === "complete" || runStatus === "running");
+  const showFlaggedBanner =
+    runStatus === "awaiting_review" && gatePassed === false && !gateOverride;
+  const showRejectedBanner = runStatus === "rejected";
+  const showOverrideBanner =
+    gateOverride && (runStatus === "awaiting_review" || runStatus === "complete");
+  // Once the gate has settled on a failure, surface each generated explanation.
+  const showExplanations = gatePassed === false;
+
+  const bannerBoxSx = (color: string, tint: number) => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+    p: 1.5,
+    borderRadius: "6px",
+    bgcolor: alpha(color, tint),
+  });
 
   return (
     <Paper elevation={1} sx={{ p: 3 }}>
@@ -113,22 +121,27 @@ export default function GateCard({
       </Box>
 
       {GATE_CHECK_KEYS.map((key) => {
-        const status = byKey.get(key)?.status ?? "pending";
+        const check = byKey.get(key);
+        const status = check?.status ?? "pending";
+        const flaggedRow = status === "fail" || status === "needs_human";
         return (
-          <Box
-            key={key}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.25,
-              py: 0.9,
-              borderTop: 1,
-              borderColor: "divider",
-            }}
-          >
-            <CheckRowIcon status={status} />
-            <Typography sx={{ flex: 1, fontSize: 13 }}>{CHECK_LABELS[key]}</Typography>
-            <CheckRowStatus status={status} />
+          <Box key={key} sx={{ py: 0.9, borderTop: 1, borderColor: "divider" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+              <GateCheckIcon status={status} />
+              <Typography sx={{ flex: 1, fontSize: 13 }}>{CHECK_LABELS[key]}</Typography>
+              <CheckRowStatus status={status} />
+            </Box>
+            {showExplanations && flaggedRow && check?.explanation && (
+              <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 0.5, ml: 3.75 }}>
+                {check.explanation}
+                {check.page !== null && (
+                  <Box component="span" sx={{ color: "text.disabled" }}>
+                    {" "}
+                    (p. {check.page})
+                  </Box>
+                )}
+              </Typography>
+            )}
           </Box>
         );
       })}
@@ -138,21 +151,71 @@ export default function GateCard({
         explanation — a human confirms before it&apos;s sent.
       </Typography>
 
-      {showBanner && (
+      {showPassedBanner && (
         <Box sx={{ mt: 2 }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              p: 1.5,
-              borderRadius: "6px",
-              bgcolor: alpha(theme.palette.success.main, 0.1),
-            }}
-          >
+          <Box sx={bannerBoxSx(theme.palette.success.main, 0.1)}>
             <CheckCircleIcon sx={{ fontSize: 18, color: "success.main" }} />
             <Typography sx={{ fontSize: 13, fontWeight: 500, color: "success.dark" }}>
               Completeness passed — ready for review
+            </Typography>
+          </Box>
+          <Button
+            fullWidth
+            variant="contained"
+            endIcon={<ArrowForwardIcon />}
+            onClick={onOpenReview}
+            sx={{ mt: 1.5 }}
+          >
+            Open prepared review
+          </Button>
+        </Box>
+      )}
+
+      {showFlaggedBanner && (
+        <Box sx={{ mt: 2 }}>
+          <Box sx={bannerBoxSx(theme.palette.error.main, 0.12)}>
+            <CancelIcon sx={{ fontSize: 18, color: "error.main" }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 500, color: "error.dark" }}>
+              Completeness flagged — a human must confirm the rejection
+            </Typography>
+          </Box>
+          <Button
+            fullWidth
+            variant="contained"
+            color="error"
+            onClick={onConfirmRejection}
+            disabled={actionPending}
+            sx={{ mt: 1.5 }}
+          >
+            Confirm rejection
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={onOverride}
+            disabled={actionPending}
+            sx={{ mt: 1 }}
+          >
+            Override &amp; proceed to review
+          </Button>
+        </Box>
+      )}
+
+      {showRejectedBanner && (
+        <Box sx={{ ...bannerBoxSx(theme.palette.error.main, 0.12), mt: 2 }}>
+          <CancelIcon sx={{ fontSize: 18, color: "error.main" }} />
+          <Typography sx={{ fontSize: 13, fontWeight: 500, color: "error.dark" }}>
+            Rejection confirmed — application marked rejected
+          </Typography>
+        </Box>
+      )}
+
+      {showOverrideBanner && (
+        <Box sx={{ mt: 2 }}>
+          <Box sx={bannerBoxSx(theme.palette.warning.main, 0.14)}>
+            <CheckCircleIcon sx={{ fontSize: 18, color: "warning.main" }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#B35300" }}>
+              Gate overridden — findings prepared for review
             </Typography>
           </Box>
           <Button

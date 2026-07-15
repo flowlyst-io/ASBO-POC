@@ -20,7 +20,8 @@ export type RunStatus =
   | "awaiting_review"
   | "complete"
   | "failed"
-  | "canceled";
+  | "canceled"
+  | "rejected";
 
 export type StepKey =
   | "extract"
@@ -204,6 +205,8 @@ export interface RunStatusPayload {
   status: RunStatus;
   currentStep: StepKey | null;
   gatePassed: boolean | null;
+  /** Human chose "Override & proceed" after a gate failure. */
+  gateOverride: boolean;
   classification: Classification | null;
   classificationRationale: string | null;
   checklistVersion: string;

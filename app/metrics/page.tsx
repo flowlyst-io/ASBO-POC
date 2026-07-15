@@ -18,6 +18,7 @@ const STATUS_ORDER: readonly RunStatus[] = [
   "complete",
   "failed",
   "canceled",
+  "rejected",
 ];
 
 const STATUS_LABEL: Record<RunStatus, string> = {
@@ -27,6 +28,7 @@ const STATUS_LABEL: Record<RunStatus, string> = {
   complete: "Complete",
   failed: "Failed",
   canceled: "Canceled",
+  rejected: "Rejected",
 };
 
 /** PRD F7 metrics: processing volume, quality rates, and AI cost. */

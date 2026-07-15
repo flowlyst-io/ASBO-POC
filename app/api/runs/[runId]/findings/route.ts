@@ -60,7 +60,7 @@ export async function GET(
     .where(eq(schema.runSteps.runId, runId));
   const producing = stepRows.filter((s) => s.step === "checklist" || s.step === "verify");
   const streaming =
-    !["awaiting_review", "complete", "failed", "canceled"].includes(run.status) &&
+    !["awaiting_review", "complete", "failed", "canceled", "rejected"].includes(run.status) &&
     producing.some((s) => s.status === "pending" || s.status === "running");
 
   const payload: FindingsPayload = { runId, findings, streaming };

@@ -45,6 +45,7 @@ export const runStatusEnum = pgEnum("run_status", [
   "complete",
   "failed",
   "canceled",
+  "rejected",
 ]);
 
 export const stepKeyEnum = pgEnum("step_key", [
@@ -198,6 +199,8 @@ export const runs = pgTable("runs", {
   status: runStatusEnum("status").notNull().default("queued"),
   currentStep: stepKeyEnum("current_step"),
   gatePassed: boolean("gate_passed"),
+  // Human chose "Override & proceed" after a gate failure — review steps run anyway.
+  gateOverride: boolean("gate_override").notNull().default(false),
   classification: classificationEnum("classification"),
   classificationRationale: text("classification_rationale"),
   checklistVersion: text("checklist_version").notNull().default("v2025.1"),

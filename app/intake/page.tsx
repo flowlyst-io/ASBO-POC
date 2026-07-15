@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Alert, Box, Breadcrumbs, Link as MuiLink, Typography } from "@mui/material";
+import { Alert, Box, Breadcrumbs, Link as MuiLink, Snackbar, Typography } from "@mui/material";
 
 import AppShell from "@/components/shell/AppShell";
 import UploadCard, { type SampleId } from "@/components/intake/UploadCard";
@@ -13,7 +13,10 @@ import UploadedFilesCard, {
 } from "@/components/intake/UploadedFilesCard";
 import PipelineCard from "@/components/intake/PipelineCard";
 import GateCard from "@/components/intake/GateCard";
+import ConfirmRejectionDialog from "@/components/intake/ConfirmRejectionDialog";
 import { useRunStatus } from "@/lib/hooks/useRunStatus";
+import type { GateDecisionAction } from "@/lib/gateDecision";
+import { postGateDecision } from "@/lib/gateDecision";
 
 function formatBytes(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -35,8 +38,35 @@ export default function IntakePage() {
   const [runId, setRunId] = React.useState<string | null>(null);
   const [starting, setStarting] = React.useState(false);
   const [startError, setStartError] = React.useState<string | null>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = React.useState(false);
+  const [gateActionPending, setGateActionPending] = React.useState(false);
+  const [gateActionError, setGateActionError] = React.useState<string | null>(null);
+  const [toast, setToast] = React.useState<string | null>(null);
 
-  const { run, error: runError } = useRunStatus(runId);
+  const { run, error: runError, refresh } = useRunStatus(runId);
+
+  const handleGateDecision = async (action: GateDecisionAction) => {
+    if (!runId) return;
+    setGateActionPending(true);
+    setGateActionError(null);
+    try {
+      await postGateDecision(runId, action);
+      setToast(
+        action === "confirm_rejection"
+          ? "Rejection confirmed and recorded to the audit trail"
+          : "Gate overridden — resuming review preparation",
+      );
+    } catch (err) {
+      setGateActionError(err instanceof Error ? err.message : String(err));
+    } finally {
+      // Refresh regardless: on success it picks up the new status (and
+      // restarts polling after an override); on a 409 it syncs the UI with
+      // whatever decision won the race.
+      await refresh();
+      setGateActionPending(false);
+      setRejectDialogOpen(false);
+    }
+  };
 
   const startRun = async (appId: string) => {
     setApplicationId(appId);
@@ -99,6 +129,8 @@ export default function IntakePage() {
     setApplicationId(null);
     setRunId(null);
     setStartError(null);
+    setRejectDialogOpen(false);
+    setGateActionError(null);
   };
 
   // Displayed files: real run document once polling returns, else local picks.
@@ -140,15 +172,28 @@ export default function IntakePage() {
             runs the completeness gate before any reviewer time is spent.
           </Typography>
 
-          {(startError || runError) && (
+          {(startError || runError || gateActionError) && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {startError ?? runError}
+              {startError ?? runError ?? gateActionError}
             </Alert>
           )}
 
           {run?.status === "awaiting_review" && run.gatePassed !== false && (
             <Alert severity="success" sx={{ mb: 2 }}>
               Findings are prepared and ready for human review.
+            </Alert>
+          )}
+
+          {run?.status === "rejected" && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              Completeness rejection confirmed — recorded to the audit trail. Nothing is sent
+              automatically in the POC.
+            </Alert>
+          )}
+
+          {run?.status === "awaiting_review" && run.gatePassed === false && run.gateOverride && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              Gate overridden by reviewer — findings are prepared for review.
             </Alert>
           )}
 
@@ -194,12 +239,38 @@ export default function IntakePage() {
                 gateChecks={run?.gateChecks ?? []}
                 runStatus={run?.status ?? (starting ? "queued" : null)}
                 gatePassed={run?.gatePassed ?? null}
+                gateOverride={run?.gateOverride ?? false}
+                actionPending={gateActionPending}
                 onOpenReview={openReview}
+                onConfirmRejection={() => setRejectDialogOpen(true)}
+                onOverride={() => void handleGateDecision("override")}
               />
             </Box>
           </Box>
         </Box>
       </Box>
+
+      <ConfirmRejectionDialog
+        open={rejectDialogOpen}
+        districtName={run?.application.districtName ?? "this application"}
+        checks={
+          run?.gateChecks.filter((c) => c.status === "fail" || c.status === "needs_human") ?? []
+        }
+        confirming={gateActionPending}
+        onClose={() => setRejectDialogOpen(false)}
+        onConfirm={() => void handleGateDecision("confirm_rejection")}
+      />
+
+      <Snackbar
+        open={toast !== null}
+        autoHideDuration={5000}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="success" variant="filled" onClose={() => setToast(null)}>
+          {toast}
+        </Alert>
+      </Snackbar>
     </AppShell>
   );
 }

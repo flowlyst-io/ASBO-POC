@@ -4,7 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { RunStatusPayload } from "@/lib/types";
 
-const TERMINAL: ReadonlyArray<string> = ["awaiting_review", "complete", "failed", "canceled"];
+const TERMINAL: ReadonlyArray<string> = [
+  "awaiting_review",
+  "complete",
+  "failed",
+  "canceled",
+  "rejected",
+];
 const POLL_MS = 2000;
 
 interface RunState {
@@ -46,8 +52,15 @@ export function useRunStatus(runId: string | null) {
     }
   }, [fetchRun, runId]);
 
+  const run = state.key === runId ? state.run : null;
+  const isTerminal = run ? TERMINAL.includes(run.status) : false;
+
+  // Polling is driven by terminality, not a one-way stop: when a poll result
+  // turns terminal the state update flips isTerminal and the effect cleanup
+  // clears the interval; when refresh() later reports a resumed run (gate
+  // override restarts the pipeline), isTerminal flips back and polling resumes.
   useEffect(() => {
-    if (!runId) return;
+    if (!runId || isTerminal) return;
 
     let stopped = false;
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -57,10 +70,6 @@ export function useRunStatus(runId: string | null) {
         const payload = await fetchRun();
         if (stopped || !payload) return;
         setState((prev) => (prev.key === runId ? { ...prev, run: payload, error: null } : prev));
-        if (TERMINAL.includes(payload.status) && timer) {
-          clearInterval(timer);
-          timer = null;
-        }
       } catch (err) {
         if (!stopped) {
           // Run doesn't exist (stale URL) — report once and stop polling.
@@ -80,13 +89,12 @@ export function useRunStatus(runId: string | null) {
       stopped = true;
       if (timer) clearInterval(timer);
     };
-  }, [runId, fetchRun]);
+  }, [runId, fetchRun, isTerminal]);
 
-  const run = state.key === runId ? state.run : null;
   return {
     run,
     error: state.key === runId ? state.error : null,
-    isTerminal: run ? TERMINAL.includes(run.status) : false,
+    isTerminal,
     refresh,
   };
 }

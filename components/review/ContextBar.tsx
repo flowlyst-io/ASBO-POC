@@ -15,6 +15,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PendingIcon from "@mui/icons-material/Pending";
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
 import VerifiedIcon from "@mui/icons-material/Verified";
 
 import AssignMenu from "@/components/applications/AssignMenu";
@@ -108,15 +109,25 @@ export default function ContextBar({ run, findings, reviewers, onAssigned }: Con
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, flexShrink: 0 }}>
-        <Tooltip title={run.gatePassed ? "Completeness gate cleared at intake" : "Completeness gate not yet cleared"}>
+        <Tooltip
+          title={
+            run.gatePassed
+              ? "Completeness gate cleared at intake"
+              : run.gateOverride
+                ? "Completeness gate flagged — overridden by reviewer"
+                : "Completeness gate not yet cleared"
+          }
+        >
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             {run.gatePassed ? (
               <CheckCircleIcon sx={{ fontSize: 15, color: "success.main" }} />
+            ) : run.gateOverride ? (
+              <ReportProblemOutlinedIcon sx={{ fontSize: 15, color: "warning.main" }} />
             ) : (
               <PendingIcon sx={{ fontSize: 15, color: "text.disabled" }} />
             )}
             <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
-              {run.gatePassed ? "Gate passed" : "Gate pending"}
+              {run.gatePassed ? "Gate passed" : run.gateOverride ? "Gate overridden" : "Gate pending"}
             </Typography>
           </Box>
         </Tooltip>
