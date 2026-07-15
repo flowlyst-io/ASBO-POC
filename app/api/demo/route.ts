@@ -39,7 +39,16 @@ export async function POST(request: Request) {
   // to reading ./samples directly, so there is nothing to do.
   if (isBlobEnabled() && !(await blobExists(storageKey))) {
     const localPath = path.join(process.cwd(), "samples", `${body.data.sampleId}.pdf`);
-    await putBlobFromFile(storageKey, localPath);
+    try {
+      await putBlobFromFile(storageKey, localPath);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`demo sample blob copy failed for ${storageKey}:`, message);
+      return NextResponse.json(
+        { error: `Sample blob copy failed: ${message}` },
+        { status: 500 },
+      );
+    }
   }
 
   await writeAudit("human", "demo_sample_selected", null, { sampleId: body.data.sampleId });

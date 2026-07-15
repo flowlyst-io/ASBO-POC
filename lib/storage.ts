@@ -34,10 +34,29 @@ export async function putBlob(key: string, data: Buffer): Promise<void> {
   await fs.writeFile(filePath, data);
 }
 
+/**
+ * Resolve a blob KEY (pathname) to its metadata, or null when absent.
+ * `head()` wants a full blob URL and rejects bare pathnames with a generic
+ * BlobError, so on any non-not-found failure we fall back to `list()` by
+ * prefix, which accepts pathnames by design.
+ */
+async function headByKey(key: string): Promise<{ url: string; size: number } | null> {
+  const { head, list, BlobNotFoundError } = await import("@vercel/blob");
+  try {
+    const meta = await head(key);
+    return { url: meta.url, size: meta.size };
+  } catch (err) {
+    if (err instanceof BlobNotFoundError) return null;
+    const { blobs } = await list({ prefix: key, limit: 10 });
+    const hit = blobs.find((b) => b.pathname === key);
+    return hit ? { url: hit.url, size: hit.size } : null;
+  }
+}
+
 export async function getBlob(key: string): Promise<Buffer> {
   if (isVercelBlobEnabled()) {
-    const { head } = await import("@vercel/blob");
-    const meta = await head(key);
+    const meta = await headByKey(key);
+    if (!meta) throw new Error(`Blob not found: ${key}`);
     const res = await fetch(meta.url);
     if (!res.ok) throw new Error(`Blob fetch failed for ${key}: ${res.status}`);
     return Buffer.from(await res.arrayBuffer());
@@ -61,14 +80,8 @@ export async function getBlob(key: string): Promise<Buffer> {
  */
 export async function statBlob(key: string): Promise<{ size: number } | null> {
   if (isVercelBlobEnabled()) {
-    const { head, BlobNotFoundError } = await import("@vercel/blob");
-    try {
-      const meta = await head(key);
-      return { size: meta.size };
-    } catch (err) {
-      if (err instanceof BlobNotFoundError) return null;
-      throw err;
-    }
+    const meta = await headByKey(key);
+    return meta ? { size: meta.size } : null;
   }
   try {
     const st = await fs.stat(path.join(LOCAL_ROOT, key));
