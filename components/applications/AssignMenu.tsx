@@ -68,7 +68,7 @@ export default function AssignMenu({ application, reviewers, onAssigned }: Assig
         startIcon={assigned ? <PersonIcon /> : <PersonAddIcon />}
         endIcon={<ArrowDropDownIcon />}
         disabled={submitting}
-        sx={{ textTransform: "none", whiteSpace: "nowrap" }}
+        sx={{ textTransform: "none", whiteSpace: "nowrap", fontSize: 12, py: 0.25, px: 1 }}
         onClick={(e) => {
           e.stopPropagation();
           setAnchorEl(e.currentTarget);

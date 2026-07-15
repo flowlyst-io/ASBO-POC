@@ -40,14 +40,14 @@ export default function BottomBar({
       elevation={4}
       square
       sx={{
-        height: 60,
+        height: 44,
         flexShrink: 0,
         borderTop: 1,
         borderColor: "divider",
         display: "flex",
         alignItems: "center",
         gap: 2,
-        px: 3,
+        px: 1.5,
         zIndex: 10,
       }}
     >
