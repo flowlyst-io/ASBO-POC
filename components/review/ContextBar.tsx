@@ -16,11 +16,16 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PendingIcon from "@mui/icons-material/Pending";
 import VerifiedIcon from "@mui/icons-material/Verified";
 
-import type { Classification, Finding, RunStatusPayload } from "@/lib/types";
+import AssignMenu from "@/components/applications/AssignMenu";
+import type { Classification, Finding, ReviewerSummary, RunStatusPayload } from "@/lib/types";
 
 export interface ContextBarProps {
   run: RunStatusPayload;
   findings: Finding[];
+  /** Reviewer roster for the assignment menu; omit to hide the control. */
+  reviewers?: ReviewerSummary[];
+  /** Called after a successful (un)assign so the caller can refetch the run. */
+  onAssigned?: () => void;
 }
 
 const CLASSIFICATION_LABEL: Record<Classification, string> = {
@@ -48,7 +53,7 @@ function formatFiscalYearEnd(iso: string): string {
 }
 
 /** Screen 2 application context bar: breadcrumb, district, sub line, stats. */
-export default function ContextBar({ run, findings }: ContextBarProps) {
+export default function ContextBar({ run, findings, reviewers, onAssigned }: ContextBarProps) {
   const total = findings.length;
   const reviewed = findings.filter((f) => f.review !== null).length;
   const flagged = findings.filter((f) => f.verifierStatus === "flagged").length;
@@ -145,6 +150,26 @@ export default function ContextBar({ run, findings }: ContextBarProps) {
             sx={{ height: 6, borderRadius: 3, mt: 0.5 }}
           />
         </Box>
+
+        {reviewers && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ height: 34, alignSelf: "center" }} />
+            <Box>
+              <Typography sx={{ fontSize: 11.5, color: "text.secondary", mb: 0.25 }}>
+                Reviewer
+              </Typography>
+              <AssignMenu
+                application={{
+                  id: run.applicationId,
+                  state: application.state,
+                  assignedReviewer: application.assignedReviewer,
+                }}
+                reviewers={reviewers}
+                onAssigned={onAssigned ?? (() => undefined)}
+              />
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { RunStatusPayload } from "@/lib/types";
 
@@ -25,6 +25,27 @@ export function useRunStatus(runId: string | null) {
     setState({ key: runId, run: null, error: null });
   }
 
+  // One-shot fetch, shared by the poll loop and manual refresh (e.g. after
+  // assigning a reviewer once polling has stopped at a terminal status).
+  const fetchRun = useCallback(async (): Promise<RunStatusPayload | null> => {
+    if (!runId) return null;
+    const res = await fetch(`/api/runs/${runId}`);
+    if (res.status === 404) throw new Error("Run not found");
+    if (!res.ok) throw new Error(`Run status ${res.status}`);
+    return (await res.json()) as RunStatusPayload;
+  }, [runId]);
+
+  const refresh = useCallback(async () => {
+    try {
+      const payload = await fetchRun();
+      if (!payload) return;
+      setState((prev) => (prev.key === runId ? { ...prev, run: payload, error: null } : prev));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setState((prev) => (prev.key === runId ? { ...prev, error: message } : prev));
+    }
+  }, [fetchRun, runId]);
+
   useEffect(() => {
     if (!runId) return;
 
@@ -33,18 +54,8 @@ export function useRunStatus(runId: string | null) {
 
     async function poll() {
       try {
-        const res = await fetch(`/api/runs/${runId}`);
-        if (res.status === 404) {
-          // Run doesn't exist (stale URL) — report once and stop polling.
-          if (timer) {
-            clearInterval(timer);
-            timer = null;
-          }
-          throw new Error("Run not found");
-        }
-        if (!res.ok) throw new Error(`Run status ${res.status}`);
-        const payload = (await res.json()) as RunStatusPayload;
-        if (stopped) return;
+        const payload = await fetchRun();
+        if (stopped || !payload) return;
         setState((prev) => (prev.key === runId ? { ...prev, run: payload, error: null } : prev));
         if (TERMINAL.includes(payload.status) && timer) {
           clearInterval(timer);
@@ -52,6 +63,11 @@ export function useRunStatus(runId: string | null) {
         }
       } catch (err) {
         if (!stopped) {
+          // Run doesn't exist (stale URL) — report once and stop polling.
+          if (err instanceof Error && err.message === "Run not found" && timer) {
+            clearInterval(timer);
+            timer = null;
+          }
           const message = err instanceof Error ? err.message : String(err);
           setState((prev) => (prev.key === runId ? { ...prev, error: message } : prev));
         }
@@ -64,12 +80,13 @@ export function useRunStatus(runId: string | null) {
       stopped = true;
       if (timer) clearInterval(timer);
     };
-  }, [runId]);
+  }, [runId, fetchRun]);
 
   const run = state.key === runId ? state.run : null;
   return {
     run,
     error: state.key === runId ? state.error : null,
     isTerminal: run ? TERMINAL.includes(run.status) : false,
+    refresh,
   };
 }

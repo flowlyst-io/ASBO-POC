@@ -11,6 +11,7 @@ import MyLocationIcon from "@mui/icons-material/MyLocation";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutlined";
 import DescriptionIcon from "@mui/icons-material/Description";
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 
 import { viewerTokens } from "@/lib/theme";
 import type { Finding, RunStatusPayload } from "@/lib/types";
@@ -18,6 +19,8 @@ import type { Finding, RunStatusPayload } from "@/lib/types";
 export interface CitationViewerProps {
   run: RunStatusPayload | null;
   finding: Finding | null;
+  /** Hides the viewer (findings panel goes full-width). */
+  onCollapse?: () => void;
 }
 
 /**
@@ -25,7 +28,7 @@ export interface CitationViewerProps {
  * excerpt lines with the cited passage highlighted (NotebookLM-style
  * click-through-to-source).
  */
-export default function CitationViewer({ run, finding }: CitationViewerProps) {
+export default function CitationViewer({ run, finding, onCollapse }: CitationViewerProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const highlightRef = React.useRef<HTMLSpanElement>(null);
 
@@ -94,6 +97,14 @@ export default function CitationViewer({ run, finding }: CitationViewerProps) {
           <IconButton size="small" disabled aria-label="download">
             <DownloadIcon fontSize="small" />
           </IconButton>
+          {onCollapse && (
+            <>
+              <Divider orientation="vertical" flexItem sx={{ mx: 0.75, my: 0.5 }} />
+              <IconButton size="small" onClick={onCollapse} aria-label="hide document viewer">
+                <CloseFullscreenIcon fontSize="small" />
+              </IconButton>
+            </>
+          )}
         </Box>
       </Box>
 

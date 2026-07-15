@@ -219,6 +219,7 @@ export interface RunStatusPayload {
     pageCount: number | null;
     filename: string;
     textQuality: TextQuality;
+    assignedReviewer: { id: string; name: string } | null;
   };
 }
 

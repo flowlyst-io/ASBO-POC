@@ -28,6 +28,8 @@ export interface FindingCardProps {
   selected: boolean;
   editing: boolean;
   onSelect: () => void;
+  /** Citation-link click: select AND reopen the document viewer if hidden. */
+  onOpenCitation?: () => void;
   onEditStart: () => void;
   onEditCancel: () => void;
   review: (findingId: string, action: ReviewAction, comment?: string) => Promise<void>;
@@ -150,6 +152,7 @@ export default function FindingCard({
   selected,
   editing,
   onSelect,
+  onOpenCitation,
   onEditStart,
   onEditCancel,
   review,
@@ -206,7 +209,7 @@ export default function FindingCard({
           >
             {finding.section.toUpperCase()} · CRITERION {finding.num}
           </Typography>
-          <Typography sx={{ fontSize: 15, fontWeight: 500, lineHeight: 1.3 }}>
+          <Typography sx={{ fontSize: 16, fontWeight: 500, lineHeight: 1.3 }}>
             {finding.title}
           </Typography>
         </Box>
@@ -244,7 +247,7 @@ export default function FindingCard({
             underline="hover"
             onClick={(e) => {
               e.stopPropagation();
-              onSelect();
+              (onOpenCitation ?? onSelect)();
             }}
             sx={{
               display: "inline-flex",
@@ -279,7 +282,8 @@ export default function FindingCard({
             <Box component="span" sx={{ fontWeight: 600 }}>
               Verifier flagged — needs human.
             </Box>{" "}
-            {finding.verifierReason ?? "Citation could not be independently confirmed."}
+            {finding.verifierReason ?? "Citation could not be independently confirmed."}{" "}
+            Confirm, Edit, or Reject below once you&apos;ve checked the citation.
           </Typography>
         </Box>
       )}
@@ -304,7 +308,7 @@ export default function FindingCard({
               {edited ? "Reviewer comment (edited)" : "AI draft comment"}
             </Typography>
           </Box>
-          <Typography sx={{ fontSize: 13, mt: 0.25 }}>{commentText}</Typography>
+          <Typography sx={{ fontSize: 14, mt: 0.25 }}>{commentText}</Typography>
         </Box>
       )}
 

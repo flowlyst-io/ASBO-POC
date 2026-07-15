@@ -14,6 +14,7 @@ import CitationViewer from "@/components/review/CitationViewer";
 import BottomBar from "@/components/review/BottomBar";
 import { useRunStatus } from "@/lib/hooks/useRunStatus";
 import { useFindings } from "@/lib/hooks/useFindings";
+import { useReviewers } from "@/lib/hooks/useReviewers";
 
 /** Screen 2 — reviewer workspace for one run. */
 export default function ReviewPage({
@@ -23,8 +24,9 @@ export default function ReviewPage({
 }) {
   const { runId } = React.use(params);
 
-  const { run, error: runError } = useRunStatus(runId);
+  const { run, error: runError, refresh } = useRunStatus(runId);
   const { findings, streaming, error: findingsError, review } = useFindings(runId);
+  const { data: reviewersData } = useReviewers();
 
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [filter, setFilter] = React.useState<FindingFilter>("all");
@@ -32,10 +34,17 @@ export default function ReviewPage({
   const [markedReady, setMarkedReady] = React.useState(false);
   const [readyError, setReadyError] = React.useState<string | null>(null);
   const [readyToast, setReadyToast] = React.useState(false);
+  const [viewerCollapsed, setViewerCollapsed] = React.useState(false);
 
   const filtered = findings.filter((f) => matchesFilter(f, filter));
   const selected =
     findings.find((f) => f.id === selectedId) ?? filtered[0] ?? findings[0] ?? null;
+
+  // Citation-link click: select the finding AND bring the viewer back.
+  const openCitation = (id: string) => {
+    setSelectedId(id);
+    setViewerCollapsed(false);
+  };
 
   const markReady = async () => {
     setReadyError(null);
@@ -98,7 +107,12 @@ export default function ReviewPage({
 
   return (
     <AppShell>
-      <ContextBar run={run} findings={findings} />
+      <ContextBar
+        run={run}
+        findings={findings}
+        reviewers={reviewersData?.reviewers}
+        onAssigned={() => void refresh()}
+      />
 
       {(findingsError || readyError) && (
         <Alert severity="error" sx={{ borderRadius: 0 }}>
@@ -113,13 +127,22 @@ export default function ReviewPage({
           onFilter={(next) => setFilter(next)}
           selectedId={selected?.id ?? null}
           onSelect={(id) => setSelectedId(id)}
+          onOpenCitation={openCitation}
           editingId={editingId}
           onEditStart={(id) => setEditingId(id)}
           onEditCancel={() => setEditingId(null)}
           review={review}
           streaming={streaming}
+          viewerCollapsed={viewerCollapsed}
+          onToggleViewer={() => setViewerCollapsed((v) => !v)}
         />
-        <CitationViewer run={run} finding={selected} />
+        {!viewerCollapsed && (
+          <CitationViewer
+            run={run}
+            finding={selected}
+            onCollapse={() => setViewerCollapsed(true)}
+          />
+        )}
       </Box>
 
       <BottomBar

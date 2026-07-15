@@ -1,13 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { Alert, Chip, ListItemText, Menu, MenuItem, Snackbar } from "@mui/material";
+import { Alert, Button, ListItemText, Menu, MenuItem, Snackbar } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
-import type { ApplicationListItem, ReviewerSummary } from "@/lib/types";
+import type { ReviewerSummary } from "@/lib/types";
+
+/** Minimal application shape needed to assign — satisfied by ApplicationListItem. */
+export interface AssignTarget {
+  id: string;
+  state: string;
+  assignedReviewer: { id: string; name: string } | null;
+}
 
 export interface AssignMenuProps {
-  application: ApplicationListItem;
+  application: AssignTarget;
   reviewers: ReviewerSummary[];
   onAssigned: () => void;
 }
@@ -53,17 +62,20 @@ export default function AssignMenu({ application, reviewers, onAssigned }: Assig
 
   return (
     <>
-      <Chip
+      <Button
         size="small"
-        icon={assigned ? <PersonIcon /> : undefined}
-        label={assigned ? assigned.name : "Assign"}
-        variant={assigned ? "filled" : "outlined"}
+        variant="outlined"
+        startIcon={assigned ? <PersonIcon /> : <PersonAddIcon />}
+        endIcon={<ArrowDropDownIcon />}
         disabled={submitting}
+        sx={{ textTransform: "none", whiteSpace: "nowrap" }}
         onClick={(e) => {
           e.stopPropagation();
           setAnchorEl(e.currentTarget);
         }}
-      />
+      >
+        {assigned ? assigned.name : "Assign"}
+      </Button>
       <Menu
         anchorEl={anchorEl}
         open={anchorEl !== null}

@@ -81,6 +81,15 @@ export async function GET(
     .from(schema.findings)
     .where(eq(schema.findings.runId, runId));
 
+  let assignedReviewer: { id: string; name: string } | null = null;
+  if (application?.assignedReviewerId) {
+    const [reviewer] = await db
+      .select({ id: schema.reviewers.id, name: schema.reviewers.name })
+      .from(schema.reviewers)
+      .where(eq(schema.reviewers.id, application.assignedReviewerId));
+    if (reviewer) assignedReviewer = reviewer;
+  }
+
   const payload: RunStatusPayload = {
     id: run.id,
     applicationId: run.applicationId,
@@ -103,6 +112,7 @@ export async function GET(
       pageCount: document?.pageCount ?? null,
       filename: document?.filename ?? "",
       textQuality: document?.textQuality ?? "unknown",
+      assignedReviewer,
     },
   };
 
