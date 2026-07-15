@@ -96,6 +96,20 @@ export const ClassificationResultSchema = z.object({
 });
 export type ClassificationResult = z.infer<typeof ClassificationResultSchema>;
 
+/** metadata task: detect district identity from the ACFR's leading pages. */
+export const DistrictMetadataSchema = z.object({
+  districtName: z
+    .string()
+    .nullable()
+    .describe("Official school district name as printed on the cover / transmittal letter"),
+  state: z.string().nullable().describe("Two-letter US state code, e.g. IA"),
+  fiscalYearEnd: z
+    .string()
+    .nullable()
+    .describe("Fiscal year end date in ISO format (YYYY-MM-DD), e.g. 2023-06-30"),
+});
+export type DistrictMetadata = z.infer<typeof DistrictMetadataSchema>;
+
 // --- API request validation ----------------------------------------------------
 
 export const CreateRunRequestSchema = z.object({

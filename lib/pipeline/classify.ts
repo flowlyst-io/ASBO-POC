@@ -15,7 +15,7 @@ import { setStepDetail, type StepContext, type StepOutcome } from "./orchestrate
  * pgvector retrieval of similar past cases) once the historical corpus
  * arrives — PRD blocking dependency #2.
  */
-export async function runClassify({ db, runId }: StepContext): Promise<StepOutcome> {
+export async function runClassify({ db, runId, run }: StepContext): Promise<StepOutcome> {
   const gateChecks = await db
     .select()
     .from(schema.gateChecks)
@@ -33,6 +33,11 @@ export async function runClassify({ db, runId }: StepContext): Promise<StepOutco
 
   const summary = [
     `Completeness gate: ${gateChecks.map((g) => `${g.checkKey}=${g.status}`).join(", ")}`,
+    ...(run.gateOverride
+      ? [
+          "NOTE: the completeness gate flagged this submission and a human reviewer overrode it to proceed with review — weigh the flagged checks accordingly.",
+        ]
+      : []),
     `Findings by status: ${JSON.stringify(statusCounts)}`,
     `Verifier-flagged (needs human): ${flagged} of ${findings.length}`,
     "Notable findings:",

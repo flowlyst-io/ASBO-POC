@@ -16,8 +16,13 @@ interface FindingsState {
 /**
  * Loads findings for a run, keeps polling while the pipeline is still
  * streaming them in, and exposes optimistic review mutations.
+ *
+ * `runActive` = the run is currently queued/running (from useRunStatus). It
+ * keeps polling alive across a pipeline resume: a gate-flagged run is
+ * terminal (streaming: false stops the poll), but a human override restarts
+ * the pipeline — runActive flips true and the effect restarts the poll.
  */
-export function useFindings(runId: string | null) {
+export function useFindings(runId: string | null, runActive = false) {
   const [state, setState] = useState<FindingsState>({
     key: runId,
     findings: [],
@@ -30,8 +35,15 @@ export function useFindings(runId: string | null) {
     setState({ key: runId, findings: [], streaming: true, error: null });
   }
 
+  // Poll while the server says findings are streaming OR the run itself is
+  // active (covers the gap right after an override, before the first payload
+  // reflects the resumed steps). Stopping is effect-driven: a poll result
+  // flips shouldPoll false, the effect re-runs, and its cleanup clears the
+  // interval — so it can restart later, unlike a one-way clearInterval.
+  const shouldPoll = (state.key === runId ? state.streaming : true) || runActive;
+
   useEffect(() => {
-    if (!runId) return;
+    if (!runId || !shouldPoll) return;
 
     let stopped = false;
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -55,10 +67,6 @@ export function useFindings(runId: string | null) {
           );
           return { ...prev, findings: merged, streaming: payload.streaming, error: null };
         });
-        if (!payload.streaming && timer) {
-          clearInterval(timer);
-          timer = null;
-        }
       } catch (err) {
         if (!stopped) {
           const message = err instanceof Error ? err.message : String(err);
@@ -73,7 +81,7 @@ export function useFindings(runId: string | null) {
       stopped = true;
       if (timer) clearInterval(timer);
     };
-  }, [runId]);
+  }, [runId, shouldPoll]);
 
   /** Accept / reject / edit / undo a finding — optimistic, then persisted. */
   const review = useCallback(

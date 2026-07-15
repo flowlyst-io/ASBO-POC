@@ -17,6 +17,13 @@ export interface UploadMetadata {
   fiscalYearEnd: string;
 }
 
+/**
+ * Default district name for uploads with no metadata. The gate step treats it
+ * as "identity unknown" and auto-detects the real district from the document
+ * (lib/pipeline/gate.ts) — keep the two in sync via this constant.
+ */
+export const PLACEHOLDER_DISTRICT_NAME = "Uploaded district";
+
 /** Random blob key for an uploaded ACFR (kept under the acfr/ prefix). */
 export function newAcfrStorageKey(): string {
   return `acfr/${randomUUID()}.pdf`;
@@ -25,7 +32,7 @@ export function newAcfrStorageKey(): string {
 /** Coerce raw form/JSON fields into upload metadata with the same defaults. */
 export function readUploadMetadata(get: (key: string) => unknown): UploadMetadata {
   return {
-    districtName: String(get("districtName") ?? "Uploaded district"),
+    districtName: String(get("districtName") ?? PLACEHOLDER_DISTRICT_NAME),
     state: String(get("state") ?? "—"),
     fiscalYearEnd: String(get("fiscalYearEnd") ?? "2025-06-30"),
   };

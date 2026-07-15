@@ -13,6 +13,7 @@ export const MODELS = {
   checklist: "claude-haiku-4-5",
   verifier: "claude-haiku-4-5",
   classify: "claude-haiku-4-5",
+  metadata: "claude-haiku-4-5",
 } as const;
 
 export type AiTask = keyof typeof MODELS;
@@ -23,6 +24,7 @@ export const MAX_TOKENS: Record<AiTask, number> = {
   checklist: 2048,
   verifier: 1024,
   classify: 1024,
+  metadata: 512,
 };
 
 /** Bumped whenever a system prompt materially changes — recorded in audit_log. */

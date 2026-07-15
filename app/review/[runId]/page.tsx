@@ -28,7 +28,8 @@ export default function ReviewPage({
   const { runId } = React.use(params);
 
   const { run, error: runError, refresh } = useRunStatus(runId);
-  const { findings, streaming, error: findingsError, review } = useFindings(runId);
+  const runActive = run !== null && (run.status === "queued" || run.status === "running");
+  const { findings, streaming, error: findingsError, review } = useFindings(runId, runActive);
   const { data: reviewersData } = useReviewers();
 
   const [selectedId, setSelectedId] = React.useState<string | null>(null);

@@ -94,5 +94,11 @@ export function mockStructured(task: AiTask): unknown {
         rationale:
           "Completeness gate passed on all six checks and most checklist criteria are met with high confidence; minor disclosure gaps keep this below 'best'. (Mock classification.)",
       };
+    case "metadata":
+      return {
+        districtName: "Mockville Community School District",
+        state: "IA",
+        fiscalYearEnd: "2023-06-30",
+      };
   }
 }

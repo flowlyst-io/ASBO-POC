@@ -24,6 +24,10 @@ import { createRunForApplication } from "../lib/pipeline/createRun";
  */
 
 process.env.MOCK_AI = "1"; // in-process steps (extract/tables/segment) never spend
+// In-process pipeline reads only the local ./samples PDFs; unset the Blob
+// token so lib/storage uses the filesystem fallback (the token in .env.local
+// can go stale when the Vercel store is recreated — it did once already).
+process.env.BLOB_READ_WRITE_TOKEN = "";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 const ACCESS_COOKIE = `coe_access=${process.env.APP_ACCESS_CODE ?? "letmein"}`;
@@ -208,10 +212,67 @@ async function main() {
     const payloadB = (await getB.json()) as { status: string; gateOverride: boolean; findingsCount: number };
     assert(payloadB.gateOverride === true, "GET run B payload missing gateOverride");
 
+    // --- District-metadata detection (placeholder-named upload) --------------
+    // Simulate a metadata-less direct upload: a placeholder application over
+    // the Rockford sample blob. The gate step must detect the identity (mock
+    // value under MOCK_AI) and replace the placeholder. Left behind like the
+    // other test runs.
+    console.log("Creating a placeholder-named application (metadata detection)…");
+    const [rockfordDoc] = await db
+      .select()
+      .from(schema.documents)
+      .where(eq(schema.documents.storageKey, "samples/rockford_il_fy2023.pdf"));
+    assert(rockfordDoc, "Rockford sample not seeded");
+    const [cloneApp] = await db
+      .insert(schema.applications)
+      .values({
+        districtName: "Uploaded district",
+        state: "—",
+        fiscalYearEnd: "2025-06-30",
+        status: "intake",
+      })
+      .returning();
+    await db.insert(schema.documents).values({
+      applicationId: cloneApp.id,
+      kind: "acfr",
+      filename: rockfordDoc.filename,
+      storageKey: rockfordDoc.storageKey,
+      sizeBytes: rockfordDoc.sizeBytes,
+      textQuality: "unknown",
+    });
+    const runC = await createRunForApplication(cloneApp.id);
+    for (let i = 0; i < 60; i++) {
+      const result = await advanceRun(runC);
+      if (result.done) break;
+    }
+    const [runCRow] = await db.select().from(schema.runs).where(eq(schema.runs.id, runC));
+    assert(runCRow.status === "awaiting_review", `Run C ended ${runCRow.status}`);
+    const [detectedApp] = await db
+      .select()
+      .from(schema.applications)
+      .where(eq(schema.applications.id, cloneApp.id));
+    assert(
+      detectedApp.districtName === "Mockville Community School District",
+      `District name not detected: "${detectedApp.districtName}"`,
+    );
+    assert(detectedApp.state === "IA", `State not detected: "${detectedApp.state}"`);
+    assert(
+      detectedApp.fiscalYearEnd === "2023-06-30",
+      `Fiscal year end not detected: "${detectedApp.fiscalYearEnd}"`,
+    );
+    const metaAudit = await db
+      .select()
+      .from(schema.auditLog)
+      .where(
+        and(eq(schema.auditLog.runId, runC), eq(schema.auditLog.event, "district_metadata_detected")),
+      );
+    assert(metaAudit.length === 1 && metaAudit[0].actor === "agent:metadata", "Metadata audit row missing");
+
     console.log("");
     console.log("GATE-DECISION E2E PASSED ✅");
     console.log(`  run A (confirm):  status=rejected, app=rejected, audit=gate_rejection_confirmed`);
     console.log(`  run B (override): status=awaiting_review, findings=${findingsB.length}, gateOverride=true`);
+    console.log(`  run C (metadata): district="${detectedApp.districtName}" state=${detectedApp.state} fye=${detectedApp.fiscalYearEnd}`);
     console.log(`  guards:           400 invalid body, 404 unknown run, 409 double/crossed decisions`);
   } finally {
     // Leave the two test runs (stub-run precedent) but restore the shared rows.
