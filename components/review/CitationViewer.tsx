@@ -48,34 +48,85 @@ interface HighlightRange {
   kind: "cite" | "search";
 }
 
-/** Non-overlapping highlight ranges: the cited passage (first occurrence of
- *  hlText) plus every occurrence of the active search term. */
-function computeRanges(text: string, hlText: string | null, term: string): HighlightRange[] {
-  const lower = text.toLowerCase();
-  const ranges: HighlightRange[] = [];
-
-  let cite: HighlightRange | null = null;
-  if (hlText) {
-    const idx = lower.indexOf(hlText.toLowerCase());
-    if (idx !== -1) {
-      cite = { start: idx, end: idx + hlText.length, kind: "cite" };
-      ranges.push(cite);
+/** Lowercased, whitespace-collapsed copy of `text` plus a map from each
+ *  normalized index back to the original raw index. Extracted PDF text is
+ *  full of hard line breaks the AI's quoted passage doesn't have — matching
+ *  in normalized space is what makes citations findable. */
+function normalizeWithMap(text: string): { norm: string; map: number[] } {
+  let norm = "";
+  const map: number[] = [];
+  let lastWasSpace = true;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (/\s/.test(ch)) {
+      if (!lastWasSpace) {
+        norm += " ";
+        map.push(i);
+        lastWasSpace = true;
+      }
+    } else {
+      norm += ch.toLowerCase();
+      map.push(i);
+      lastWasSpace = false;
     }
   }
+  return { norm, map };
+}
 
+/** First whitespace-insensitive occurrence of `needle`, as raw-text offsets. */
+function findNormalizedRange(
+  normText: { norm: string; map: number[] },
+  needle: string,
+): { start: number; end: number } | null {
+  const normNeedle = needle.toLowerCase().replace(/\s+/g, " ").trim();
+  if (normNeedle.length === 0) return null;
+  const idx = normText.norm.indexOf(normNeedle);
+  if (idx === -1) return null;
+  return { start: normText.map[idx], end: normText.map[idx + normNeedle.length - 1] + 1 };
+}
+
+/**
+ * Cited-passage ranges via a tolerant cascade: whole passage
+ * (whitespace-normalized), then sentence-sized fragments of it, so a
+ * partially-mismatched extraction still highlights what it can.
+ */
+function findCiteRanges(text: string, hlText: string): HighlightRange[] {
+  const normText = normalizeWithMap(text);
+
+  const whole = findNormalizedRange(normText, hlText);
+  if (whole) return [{ ...whole, kind: "cite" }];
+
+  const fragments = hlText
+    .split(/(?<=[.;:])\s+|\n+/)
+    .map((f) => f.trim())
+    .filter((f) => f.length >= 12);
+  const ranges: HighlightRange[] = [];
+  for (const fragment of fragments) {
+    const hit = findNormalizedRange(normText, fragment);
+    if (hit && !ranges.some((r) => hit.start < r.end && hit.end > r.start)) {
+      ranges.push({ ...hit, kind: "cite" });
+    }
+  }
+  return ranges.sort((a, b) => a.start - b.start);
+}
+
+/** Merge cite ranges with every occurrence of the active search term. */
+function buildRanges(text: string, citeRanges: HighlightRange[], term: string): HighlightRange[] {
+  const ranges = [...citeRanges];
   const needle = term.toLowerCase();
   if (needle.length >= 2) {
+    const lower = text.toLowerCase();
     let from = 0;
     for (;;) {
       const idx = lower.indexOf(needle, from);
       if (idx === -1) break;
       const end = idx + needle.length;
-      const overlapsCite = cite !== null && idx < cite.end && end > cite.start;
-      if (!overlapsCite) ranges.push({ start: idx, end, kind: "search" });
+      if (!citeRanges.some((r) => idx < r.end && end > r.start)) {
+        ranges.push({ start: idx, end, kind: "search" });
+      }
       from = end;
     }
   }
-
   return ranges.sort((a, b) => a.start - b.start);
 }
 
@@ -115,11 +166,16 @@ export default function CitationViewer({ run, finding, onCollapse }: CitationVie
     [pageCount],
   );
 
+  // Page (±1 of the cited one) where the cited passage was actually found
+  // when it isn't on the cited page itself — citations are often off by one.
+  const [nearbyHit, setNearbyHit] = React.useState<number | null>(null);
+
   // Follow the selected finding to its cited page (derived reset via the
   // setState-during-render pattern, same as useRunStatus).
   const [lastFindingId, setLastFindingId] = React.useState<string | null>(null);
   if (findingId !== lastFindingId) {
     setLastFindingId(findingId);
+    setNearbyHit(null);
     if (findingId) setCurrentPage(findingPage ?? 1);
   }
 
@@ -177,8 +233,13 @@ export default function CitationViewer({ run, finding, onCollapse }: CitationVie
 
   const scrollToHighlight = React.useCallback(() => {
     const container = scrollRef.current;
+    if (!container) return;
     const highlight = highlightRef.current;
-    if (!container || !highlight) return;
+    if (!highlight) {
+      // No text-level match on this page — show it from the top.
+      container.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     // Smooth-scroll the scroll CONTAINER (not scrollIntoView) to the highlight.
     const top =
       highlight.getBoundingClientRect().top -
@@ -188,13 +249,54 @@ export default function CitationViewer({ run, finding, onCollapse }: CitationVie
     container.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
   }, []);
 
-  // When the cited page finishes rendering, bring the citation into view.
+  // When the cited page (or a nearby page holding the passage) finishes
+  // rendering, bring the citation into view.
   React.useEffect(() => {
-    if (pageData && findingPage !== null && pageData.pageNumber === findingPage) {
+    if (
+      pageData &&
+      (pageData.pageNumber === findingPage || (nearbyHit !== null && pageData.pageNumber === nearbyHit))
+    ) {
       const raf = requestAnimationFrame(scrollToHighlight);
       return () => cancelAnimationFrame(raf);
     }
-  }, [pageData, findingPage, scrollToHighlight]);
+  }, [pageData, findingPage, nearbyHit, scrollToHighlight]);
+
+  const hlText = finding?.hlText ?? null;
+
+  // When the cited page is showing but the passage can't be text-matched on
+  // it, probe the adjacent pages — extraction page numbering is often off by
+  // one. Only a real text hit sets nearbyHit; we never fake evidence.
+  React.useEffect(() => {
+    if (!documentId || !pageData || !hlText || findingPage === null) return;
+    if (pageData.pageNumber !== findingPage) return;
+    if (findCiteRanges(pageData.text, hlText).length > 0) return;
+    let stale = false;
+    const probe = async () => {
+      for (const neighbor of [findingPage - 1, findingPage + 1]) {
+        if (neighbor < 1 || (pageCount !== null && neighbor > pageCount)) continue;
+        const cacheKey = `${documentId}:${neighbor}`;
+        let payload = cacheRef.current.get(cacheKey);
+        if (!payload) {
+          try {
+            const res = await fetch(`/api/documents/${documentId}/pages/${neighbor}`);
+            if (!res.ok) continue;
+            payload = (await res.json()) as PagePayload;
+            cacheRef.current.set(cacheKey, payload);
+          } catch {
+            continue;
+          }
+        }
+        if (findCiteRanges(payload.text, hlText).length > 0) {
+          if (!stale) setNearbyHit(neighbor);
+          return;
+        }
+      }
+    };
+    void probe();
+    return () => {
+      stale = true;
+    };
+  }, [documentId, pageData, hlText, findingPage, pageCount]);
 
   const commitPageInput = () => {
     const parsed = Number.parseInt(pageInput, 10);
@@ -246,16 +348,16 @@ export default function CitationViewer({ run, finding, onCollapse }: CitationVie
     ? finding.section.charAt(0).toUpperCase() + finding.section.slice(1)
     : null;
 
-  const onCitedPage = pageData !== null && findingPage !== null && pageData.pageNumber === findingPage;
-  const citeHlText = onCitedPage ? (finding?.hlText ?? null) : null;
-  const citeFound =
-    pageData !== null &&
-    citeHlText !== null &&
-    pageData.text.toLowerCase().includes(citeHlText.toLowerCase());
-
   /** Real page text with citation + search highlights. */
   const renderPageBody = (page: PagePayload) => {
-    const ranges = computeRanges(page.text, citeHlText, search?.query ?? "");
+    // Cite highlighting is attempted on the cited page and its neighbors —
+    // extraction numbering is often off by one; further pages stay clean.
+    const inCiteWindow = findingPage !== null && Math.abs(page.pageNumber - findingPage) <= 1;
+    const citeRanges = hlText && inCiteWindow ? findCiteRanges(page.text, hlText) : [];
+    const onCitedPage = findingPage !== null && page.pageNumber === findingPage;
+    const ranges = buildRanges(page.text, citeRanges, search?.query ?? "");
+    const firstCiteIndex = ranges.findIndex((r) => r.kind === "cite");
+
     const nodes: React.ReactNode[] = [];
     let cursor = 0;
     ranges.forEach((range, i) => {
@@ -266,7 +368,7 @@ export default function CitationViewer({ run, finding, onCollapse }: CitationVie
           <Box
             key={`hl-${i}`}
             component="span"
-            ref={highlightRef}
+            ref={i === firstCiteIndex ? highlightRef : undefined}
             sx={{
               bgcolor: viewerTokens.citationHighlightBg,
               boxShadow: viewerTokens.citationHighlightRing,
@@ -336,10 +438,30 @@ export default function CitationViewer({ run, finding, onCollapse }: CitationVie
           </Box>
         )}
 
-        {onCitedPage && citeHlText && !citeFound && (
-          <Typography sx={{ fontSize: 11.5, color: "text.disabled", fontFamily: "inherit", mb: 2 }}>
-            Cited passage could not be located in this page&apos;s extracted text.
-          </Typography>
+        {onCitedPage && hlText && citeRanges.length === 0 && (
+          <Box
+            sx={{
+              mb: 2.5,
+              p: 1.25,
+              borderRadius: "6px",
+              bgcolor: viewerTokens.citationHighlightBg,
+              boxShadow: viewerTokens.citationHighlightRing,
+            }}
+          >
+            <Typography sx={{ fontSize: 12, fontFamily: "inherit", color: "text.primary" }}>
+              {finding
+                ? `Evidence for Criterion ${finding.num} was cited on this page`
+                : "The cited evidence is on this page"}
+              {nearbyHit !== null
+                ? `, and the quoted passage was found on page ${nearbyHit}.`
+                : ", but the exact passage couldn't be matched to the extracted text — review the full page."}
+            </Typography>
+            {nearbyHit !== null && (
+              <Button size="small" sx={{ mt: 0.5, fontSize: 12 }} onClick={() => goToPage(nearbyHit)}>
+                Go to page {nearbyHit}
+              </Button>
+            )}
+          </Box>
         )}
 
         <Box
