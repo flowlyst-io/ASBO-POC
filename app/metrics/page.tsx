@@ -31,7 +31,14 @@ const STATUS_LABEL: Record<RunStatus, string> = {
   rejected: "Rejected",
 };
 
-/** PRD F7 metrics: processing volume, quality rates, and AI cost. */
+/** Compact token count for stat tiles: 12_340 → "12.3k", 2_400_000 → "2.4M". */
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+}
+
+/** PRD F7 metrics: processing volume, quality rates, and AI usage. */
 export default function MetricsPage() {
   const { data, error, loading } = useMetrics();
 
@@ -46,7 +53,7 @@ export default function MetricsPage() {
       <PageContainer
         maxWidth={1280}
         title="Metrics"
-        subtitle="PRD F7 · processing volume, quality rates, and AI cost per application"
+        subtitle="PRD F7 · processing volume, quality rates, and AI usage per application"
       >
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -71,9 +78,9 @@ export default function MetricsPage() {
             caption="Human decisions on findings"
           />
           <StatTile
-            label="Total AI cost"
-            value={data ? `$${data.totalCostUsd.toFixed(2)}` : "—"}
-            caption="Audited LLM spend, all runs"
+            label="Total AI tokens"
+            value={data ? formatTokens(data.totalTokens) : "—"}
+            caption="Audited LLM usage, all runs"
           />
         </Box>
 
@@ -156,7 +163,7 @@ export default function MetricsPage() {
         </Box>
 
         <Box sx={{ mt: 3 }}>
-          <CostTable rows={data?.runCosts ?? []} totalCostUsd={data?.totalCostUsd} />
+          <CostTable rows={data?.runCosts ?? []} />
         </Box>
       </PageContainer>
     </AppShell>

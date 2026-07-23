@@ -24,6 +24,13 @@ function sectionTitle(text: string, caption: string) {
   );
 }
 
+/** Compact token count for stat tiles: 12_340 → "12.3k", 2_400_000 → "2.4M". */
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+}
+
 /** Workspace dashboard: KPI row, needs-attention queue, recent applications. */
 export default function DashboardPage() {
   const router = useRouter();
@@ -69,8 +76,8 @@ export default function DashboardPage() {
             caption="Reviews marked ready for decision"
           />
           <StatTile
-            label="Total AI cost"
-            value={metrics ? `$${metrics.totalCostUsd.toFixed(2)}` : "—"}
+            label="Total AI tokens"
+            value={metrics ? formatTokens(metrics.totalTokens) : "—"}
             caption="All pipeline runs, audited LLM calls"
           />
         </Box>

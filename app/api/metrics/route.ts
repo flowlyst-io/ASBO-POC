@@ -2,22 +2,13 @@ import { NextResponse } from "next/server";
 import { and, inArray, isNotNull } from "drizzle-orm";
 
 import { getDb, schema } from "@/db/client";
-import {
-  HAIKU_CACHE_READ_USD_PER_MTOK,
-  HAIKU_CACHE_WRITE_USD_PER_MTOK,
-  HAIKU_INPUT_USD_PER_MTOK,
-  HAIKU_OUTPUT_USD_PER_MTOK,
-} from "@/lib/types";
 import type { MetricsPayload, RunCostRow, RunStatus } from "@/lib/types";
-
-function round4(n: number): number {
-  return Math.round(n * 10000) / 10000;
-}
 
 /**
  * GET /api/metrics — PRD F7 dashboard numbers: run throughput, gate rejection
- * rate, human overturn rate, verifier catch rate, and per-run LLM cost derived
- * from audit_log llm_call payloads (claude-haiku-4-5 pricing).
+ * rate, human overturn rate, verifier catch rate, and per-run LLM token usage
+ * derived from audit_log llm_call payloads. Dollar cost is intentionally not
+ * computed or returned — usage is reported in tokens only.
  */
 export async function GET() {
   const db = await getDb();
@@ -56,7 +47,7 @@ export async function GET() {
   const flagged = allFindings.filter((f) => f.verifierStatus === "flagged").length;
   const verifierCatchRate = allFindings.length > 0 ? flagged / allFindings.length : null;
 
-  // --- Per-run LLM cost from audit_log --------------------------------------
+  // --- Per-run LLM token usage from audit_log -------------------------------
   const llmEvents = await db
     .select()
     .from(schema.auditLog)
@@ -106,12 +97,6 @@ export async function GET() {
   for (const [runId, acc] of byRun) {
     const run = runById.get(runId);
     const app = run ? appById.get(run.applicationId) : undefined;
-    const costUsd = round4(
-      (acc.inputTokens / 1e6) * HAIKU_INPUT_USD_PER_MTOK +
-        (acc.outputTokens / 1e6) * HAIKU_OUTPUT_USD_PER_MTOK +
-        (acc.cacheReadTokens / 1e6) * HAIKU_CACHE_READ_USD_PER_MTOK +
-        (acc.cacheWriteTokens / 1e6) * HAIKU_CACHE_WRITE_USD_PER_MTOK,
-    );
     runCosts.push({
       runId,
       districtName: app?.districtName ?? "Unknown district",
@@ -121,12 +106,16 @@ export async function GET() {
       outputTokens: acc.outputTokens,
       cacheReadTokens: acc.cacheReadTokens,
       cacheWriteTokens: acc.cacheWriteTokens,
-      costUsd,
       mock: acc.realCalls === 0,
     });
   }
-  runCosts.sort((a, b) => b.costUsd - a.costUsd);
-  const totalCostUsd = round4(runCosts.reduce((sum, r) => sum + r.costUsd, 0));
+  runCosts.sort(
+    (a, b) => b.inputTokens + b.outputTokens - (a.inputTokens + a.outputTokens),
+  );
+  const totalTokens = runCosts.reduce(
+    (sum, r) => sum + r.inputTokens + r.outputTokens,
+    0,
+  );
 
   const payload: MetricsPayload = {
     runsByStatus,
@@ -138,7 +127,7 @@ export async function GET() {
     totalReviews: allReviews.length,
     totalFindings: allFindings.length,
     runCosts,
-    totalCostUsd,
+    totalTokens,
   };
   return NextResponse.json(payload);
 }
