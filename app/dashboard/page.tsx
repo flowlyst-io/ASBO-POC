@@ -12,7 +12,6 @@ import ApplicationsTable from "@/components/applications/ApplicationsTable";
 import { ClassificationChip } from "@/components/applications/statusChips";
 import StatTile from "@/components/metrics/StatTile";
 import { useApplications } from "@/lib/hooks/useApplications";
-import { useMetrics } from "@/lib/hooks/useMetrics";
 import type { ApplicationListItem } from "@/lib/types";
 
 function sectionTitle(text: string, caption: string) {
@@ -24,18 +23,10 @@ function sectionTitle(text: string, caption: string) {
   );
 }
 
-/** Compact token count for stat tiles: 12_340 → "12.3k", 2_400_000 → "2.4M". */
-function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return String(n);
-}
-
 /** Workspace dashboard: KPI row, needs-attention queue, recent applications. */
 export default function DashboardPage() {
   const router = useRouter();
   const { data: appsData, error: appsError, loading } = useApplications();
-  const { data: metrics } = useMetrics();
 
   const applications = appsData?.applications ?? [];
   const awaiting = applications.filter((a) => a.latestRunStatus === "awaiting_review");
@@ -74,11 +65,6 @@ export default function DashboardPage() {
             label="Completed"
             value={loading ? "—" : String(completed.length)}
             caption="Reviews marked ready for decision"
-          />
-          <StatTile
-            label="Total AI tokens"
-            value={metrics ? formatTokens(metrics.totalTokens) : "—"}
-            caption="All pipeline runs, audited LLM calls"
           />
         </Box>
 

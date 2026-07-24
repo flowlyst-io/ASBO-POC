@@ -31,13 +31,6 @@ const STATUS_LABEL: Record<RunStatus, string> = {
   rejected: "Rejected",
 };
 
-/** Compact token count for stat tiles: 12_340 → "12.3k", 2_400_000 → "2.4M". */
-function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return String(n);
-}
-
 /** PRD F7 metrics: processing volume, quality rates, and AI usage. */
 export default function MetricsPage() {
   const { data, error, loading } = useMetrics();
@@ -76,11 +69,6 @@ export default function MetricsPage() {
             label="Total reviews"
             value={data ? String(data.totalReviews) : "—"}
             caption="Human decisions on findings"
-          />
-          <StatTile
-            label="Total AI tokens"
-            value={data ? formatTokens(data.totalTokens) : "—"}
-            caption="Audited LLM usage, all runs"
           />
         </Box>
 

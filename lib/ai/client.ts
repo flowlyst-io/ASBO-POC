@@ -81,10 +81,6 @@ export async function callStructured<S extends z.ZodType>(
   await writeAudit(`agent:${task}`, "llm_call", runId, {
     model,
     promptVersion: PROMPT_VERSION,
-    inputTokens: response.usage.input_tokens,
-    outputTokens: response.usage.output_tokens,
-    cacheReadTokens: response.usage.cache_read_input_tokens,
-    cacheWriteTokens: response.usage.cache_creation_input_tokens,
     stopReason: response.stop_reason,
   });
 

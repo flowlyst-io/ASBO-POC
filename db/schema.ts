@@ -221,7 +221,7 @@ export const runSteps = pgTable(
       .references(() => runs.id),
     step: stepKeyEnum("step").notNull(),
     status: stepStatusEnum("status").notNull().default("pending"),
-    // Cursor + metrics, e.g. { cursor: 15, total: 40, inputTokens: 1234, outputTokens: 567 }
+    // Cursor + metrics, e.g. { cursor: 15, total: 40 }
     detail: jsonb("detail"),
     startedAt: timestamp("started_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
@@ -311,7 +311,7 @@ export const auditLog = pgTable(
     // | "agent:classify" | "agent:segment" | "human"
     actor: text("actor").notNull(),
     event: text("event").notNull(),
-    // model id, prompt version, token usage, input hash, verdict, ...
+    // model id, prompt version, input hash, verdict, ...
     payload: jsonb("payload"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

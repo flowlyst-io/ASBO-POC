@@ -162,17 +162,13 @@ export interface NavCountsPayload {
   me: { id: string; name: string; initials: string };
 }
 
-/** Per-run LLM usage row derived from audit_log llm_call payloads. */
+/** Per-run LLM usage row derived from audit_log llm_call events. */
 export interface RunCostRow {
   runId: string;
   districtName: string;
   classification: Classification | null;
   llmCalls: number;
-  inputTokens: number;
-  outputTokens: number;
-  cacheReadTokens: number;
-  cacheWriteTokens: number;
-  /** True when the run only has mocked LLM calls (no token data). */
+  /** True when the run only has mocked LLM calls. */
   mock: boolean;
 }
 
@@ -187,15 +183,7 @@ export interface MetricsPayload {
   totalReviews: number;
   totalFindings: number;
   runCosts: RunCostRow[];
-  /** Total input+output tokens across all runs (dollar cost is intentionally not exposed). */
-  totalTokens: number;
 }
-
-// claude-haiku-4-5 pricing (USD per million tokens)
-export const HAIKU_INPUT_USD_PER_MTOK = 1;
-export const HAIKU_OUTPUT_USD_PER_MTOK = 5;
-export const HAIKU_CACHE_READ_USD_PER_MTOK = 0.1; // ~0.1x input
-export const HAIKU_CACHE_WRITE_USD_PER_MTOK = 1.25; // 1.25x input (5m TTL)
 
 /** Poll payload for GET /api/runs/[runId]. */
 export interface RunStatusPayload {

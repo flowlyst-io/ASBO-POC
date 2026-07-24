@@ -6,9 +6,9 @@ import type { MetricsPayload, RunCostRow, RunStatus } from "@/lib/types";
 
 /**
  * GET /api/metrics — PRD F7 dashboard numbers: run throughput, gate rejection
- * rate, human overturn rate, verifier catch rate, and per-run LLM token usage
- * derived from audit_log llm_call payloads. Dollar cost is intentionally not
- * computed or returned — usage is reported in tokens only.
+ * rate, human overturn rate, verifier catch rate, and per-run LLM call counts
+ * derived from audit_log llm_call events. Token counts and dollar cost are
+ * intentionally not computed or returned.
  */
 export async function GET() {
   const db = await getDb();
@@ -47,7 +47,7 @@ export async function GET() {
   const flagged = allFindings.filter((f) => f.verifierStatus === "flagged").length;
   const verifierCatchRate = allFindings.length > 0 ? flagged / allFindings.length : null;
 
-  // --- Per-run LLM token usage from audit_log -------------------------------
+  // --- Per-run LLM call counts from audit_log -------------------------------
   const llmEvents = await db
     .select()
     .from(schema.auditLog)
@@ -63,10 +63,6 @@ export async function GET() {
 
   interface CostAccumulator {
     llmCalls: number;
-    inputTokens: number;
-    outputTokens: number;
-    cacheReadTokens: number;
-    cacheWriteTokens: number;
     realCalls: number;
   }
   const byRun = new Map<string, CostAccumulator>();
@@ -74,22 +70,10 @@ export async function GET() {
     if (!row.runId) continue;
     let acc = byRun.get(row.runId);
     if (!acc) {
-      acc = {
-        llmCalls: 0,
-        inputTokens: 0,
-        outputTokens: 0,
-        cacheReadTokens: 0,
-        cacheWriteTokens: 0,
-        realCalls: 0,
-      };
+      acc = { llmCalls: 0, realCalls: 0 };
       byRun.set(row.runId, acc);
     }
-    const payload = (row.payload ?? {}) as Record<string, unknown>;
     acc.llmCalls += 1;
-    acc.inputTokens += Number(payload.inputTokens) || 0;
-    acc.outputTokens += Number(payload.outputTokens) || 0;
-    acc.cacheReadTokens += Number(payload.cacheReadTokens) || 0;
-    acc.cacheWriteTokens += Number(payload.cacheWriteTokens) || 0;
     if (row.event === "llm_call") acc.realCalls += 1;
   }
 
@@ -102,20 +86,10 @@ export async function GET() {
       districtName: app?.districtName ?? "Unknown district",
       classification: run?.classification ?? null,
       llmCalls: acc.llmCalls,
-      inputTokens: acc.inputTokens,
-      outputTokens: acc.outputTokens,
-      cacheReadTokens: acc.cacheReadTokens,
-      cacheWriteTokens: acc.cacheWriteTokens,
       mock: acc.realCalls === 0,
     });
   }
-  runCosts.sort(
-    (a, b) => b.inputTokens + b.outputTokens - (a.inputTokens + a.outputTokens),
-  );
-  const totalTokens = runCosts.reduce(
-    (sum, r) => sum + r.inputTokens + r.outputTokens,
-    0,
-  );
+  runCosts.sort((a, b) => b.llmCalls - a.llmCalls);
 
   const payload: MetricsPayload = {
     runsByStatus,
@@ -127,7 +101,6 @@ export async function GET() {
     totalReviews: allReviews.length,
     totalFindings: allFindings.length,
     runCosts,
-    totalTokens,
   };
   return NextResponse.json(payload);
 }
